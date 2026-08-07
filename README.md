@@ -110,7 +110,16 @@ npm run pack:check
 `@maniclang/workbench` is not published until a public licence is added to this
 repository.
 
-## Community
+## Links
 
-- X: [@anish2good](https://x.com/anish2good)
-- Reddit: [r/maniclang](https://www.reddit.com/r/maniclang/)
+- [How Manic works](https://github.com/maniclang-x/manic/blob/main/HOW-MANIC-WORKS.md)
+- [Troubleshooting and common issues](https://github.com/maniclang-x/manic/blob/main/TROUBLESHOOTING.md)
+- Product: [maniclang.com](https://maniclang.com)
+- Application: [app.maniclang.com](https://app.maniclang.com)
+- Documentation: [maniclang.com](https://maniclang.com)
+- Report a bug: [GitHub Issues](https://github.com/maniclang-x/manic-workbench/issues)
+- Engine releases: [github.com/maniclang-x/manic](https://github.com/maniclang-x/manic)
+- Installation: [INSTALL.md](https://github.com/maniclang-x/manic/blob/main/INSTALL.md)
+- Troubleshooting: [TROUBLESHOOTING.md](https://github.com/maniclang-x/manic/blob/main/TROUBLESHOOTING.md)
+- Creator: [Anish on X](https://x.com/anish2good)
+- Community: [r/maniclang](https://www.reddit.com/r/maniclang/)
