@@ -26,5 +26,15 @@ Prefer small changes that complete one product contract at a time. New Engine
 integrations should consume stable structured CLI output rather than parsing
 human-readable terminal text.
 
-The repository licence is still awaiting selection. Contributions should not
-be published or redistributed until that licence is added.
+## Publishing to npm
+
+Maintainers release `@maniclang/workbench` with:
+
+```bash
+npm version patch   # skip if package.json already has an unpublished version
+npm run release -- --otp=XXXXXX
+```
+
+`npm run release` refuses to overwrite an existing version, runs typecheck /
+tests / build / pack, then `npm publish --access public`. Pass the 2FA code via
+`--otp=` or `NPM_OTP`.

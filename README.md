@@ -107,8 +107,18 @@ npm run pack:check
 
 ## Publishing
 
-`@maniclang/workbench` is not published until a public licence is added to this
-repository.
+Ship a new npm release with the release script (checks, build, pack, publish):
+
+```bash
+npm version patch   # or minor / major — required when the version is already on npm
+npm run release -- --otp=XXXXXX
+```
+
+Then verify:
+
+```bash
+npx -y @maniclang/workbench@latest --version
+```
 
 ## Links
 

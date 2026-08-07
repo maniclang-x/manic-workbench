@@ -20,7 +20,9 @@
     "start": "node dist/server/cli.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit",
-    "pack:check": "npm pack --dry-run"
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "npm run build",
+    "release": "node scripts/publish.mjs"
   },
   "engines": {
     "node": ">=22"
