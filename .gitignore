@@ -7,3 +7,8 @@ coverage/
 .env.*
 !.env.example
 .DS_Store
+.cursor/
+.manic-workbench-session
+.manic-workbench-threads/*
+PLAN.md
+ai-story.manic

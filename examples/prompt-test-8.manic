@@ -1,0 +1,266 @@
+title("Insertion Sort");
+canvas("16:9");
+
+text(head, (cx, 65), "insertion sort");
+display(head);
+color(head, cyan);
+size(head, 38);
+hidden(head);
+
+text(cap, (cx, h - 55), "");
+display(cap);
+color(cap, fg);
+size(cap, 22);
+hidden(cap);
+
+array(a, "5 2 4 6 1 3", (cx, cy), 82, 72);
+hidden(a.cells);
+hidden(a.boxes);
+color(a.cells, fg);
+
+text(pass, (cx, cy - 150), "");
+display(pass);
+color(pass, cyan);
+size(pass, 30);
+hidden(pass);
+
+text(action, (cx, cy + 125), "");
+display(action);
+color(action, fg);
+size(action, 24);
+hidden(action);
+
+text(keybox, (cx, cy - 95), "key = ?");
+display(keybox);
+color(keybox, magenta);
+size(keybox, 28);
+hidden(keybox);
+
+counter(comp, (cx - 250, cy + 205), 0, 0, "comparisons = ", "");
+display(comp);
+color(comp, cyan);
+size(comp, 22);
+hidden(comp);
+
+counter(shifts, (cx + 250, cy + 205), 0, 0, "shifts = ", "");
+display(shifts);
+color(shifts, magenta);
+size(shifts, 22);
+hidden(shifts);
+
+text(prefix1, (cx - 205, cy - 62), "sorted");
+text(prefix2, (cx - 164, cy - 62), "sorted");
+text(prefix3, (cx - 123, cy - 62), "sorted");
+text(prefix4, (cx - 82, cy - 62), "sorted");
+text(prefix5, (cx - 41, cy - 62), "sorted");
+text(prefix6, (cx, cy - 62), "sorted");
+display(prefix1);
+display(prefix2);
+display(prefix3);
+display(prefix4);
+display(prefix5);
+display(prefix6);
+color(prefix1, lime);
+color(prefix2, lime);
+color(prefix3, lime);
+color(prefix4, lime);
+color(prefix5, lime);
+color(prefix6, lime);
+size(prefix1, 18);
+size(prefix2, 18);
+size(prefix3, 18);
+size(prefix4, 18);
+size(prefix5, 18);
+size(prefix6, 18);
+hidden(prefix1);
+hidden(prefix2);
+hidden(prefix3);
+hidden(prefix4);
+hidden(prefix5);
+hidden(prefix6);
+
+text(done, (cx, cy + 285), "sorted array: 1 2 3 4 5 6");
+display(done);
+color(done, lime);
+size(done, 32);
+hidden(done);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "Insertion sort grows a sorted prefix one item at a time.", 0.8);
+
+par {
+show(a.boxes, 0.5);
+show(a.cells, 0.5);
+show(pass, 0.3);
+show(action, 0.3);
+show(keybox, 0.3);
+show(comp, 0.3);
+show(shifts, 0.3);
+}
+show(prefix1, 0.25);
+say(cap, "The first element is already a sorted prefix.", 0.7);
+
+say(pass, "i = 1", 0.25);
+say(keybox, "key = 2", 0.25);
+flash(a.c1, magenta);
+say(action, "compare key 2 with 5", 0.25);
+par {
+flash(a.c0, cyan);
+flash(a.c1, cyan);
+}
+to(comp, value, 1, 0.25);
+say(action, "5 > 2, shift 5 right", 0.25);
+par {
+flash(a.c0, magenta);
+flash(a.c1, magenta);
+say(a.c1, "5", 0.28);
+}
+to(shifts, value, 1, 0.25);
+say(action, "insert key at slot 0", 0.25);
+say(a.c0, "2", 0.28);
+show(prefix2, 0.25);
+say(cap, "Now 2 5 is sorted.", 0.6);
+
+say(pass, "i = 2", 0.25);
+say(keybox, "key = 4", 0.25);
+flash(a.c2, magenta);
+say(action, "compare key 4 with 5", 0.25);
+par {
+flash(a.c1, cyan);
+flash(a.c2, cyan);
+}
+to(comp, value, 2, 0.25);
+say(action, "5 > 4, shift 5 right", 0.25);
+par {
+flash(a.c1, magenta);
+flash(a.c2, magenta);
+say(a.c2, "5", 0.28);
+}
+to(shifts, value, 2, 0.25);
+say(action, "compare key 4 with 2", 0.25);
+par {
+flash(a.c0, cyan);
+flash(a.c1, cyan);
+}
+to(comp, value, 3, 0.25);
+say(action, "2 <= 4, insert key after 2", 0.25);
+say(a.c1, "4", 0.28);
+show(prefix3, 0.25);
+say(cap, "The sorted prefix becomes 2 4 5.", 0.6);
+
+say(pass, "i = 3", 0.25);
+say(keybox, "key = 6", 0.25);
+flash(a.c3, magenta);
+say(action, "compare key 6 with 5", 0.25);
+par {
+flash(a.c2, cyan);
+flash(a.c3, cyan);
+}
+to(comp, value, 4, 0.25);
+say(action, "5 <= 6, no shift", 0.25);
+show(prefix4, 0.25);
+say(cap, "6 is already in the right place.", 0.6);
+
+say(pass, "i = 4", 0.25);
+say(keybox, "key = 1", 0.25);
+flash(a.c4, magenta);
+say(action, "key 1 moves left through the sorted prefix", 0.25);
+
+say(action, "6 > 1, shift 6 right", 0.25);
+par {
+flash(a.c3, magenta);
+flash(a.c4, magenta);
+say(a.c4, "6", 0.25);
+}
+to(comp, value, 5, 0.2);
+to(shifts, value, 3, 0.2);
+
+say(action, "5 > 1, shift 5 right", 0.25);
+par {
+flash(a.c2, magenta);
+flash(a.c3, magenta);
+say(a.c3, "5", 0.25);
+}
+to(comp, value, 6, 0.2);
+to(shifts, value, 4, 0.2);
+
+say(action, "4 > 1, shift 4 right", 0.25);
+par {
+flash(a.c1, magenta);
+flash(a.c2, magenta);
+say(a.c2, "4", 0.25);
+}
+to(comp, value, 7, 0.2);
+to(shifts, value, 5, 0.2);
+
+say(action, "2 > 1, shift 2 right", 0.25);
+par {
+flash(a.c0, magenta);
+flash(a.c1, magenta);
+say(a.c1, "2", 0.25);
+}
+to(comp, value, 8, 0.2);
+to(shifts, value, 6, 0.2);
+
+say(action, "insert key at the front", 0.25);
+say(a.c0, "1", 0.28);
+show(prefix5, 0.25);
+say(cap, "The sorted prefix is now 1 2 4 5 6.", 0.7);
+
+say(pass, "i = 5", 0.25);
+say(keybox, "key = 3", 0.25);
+flash(a.c5, magenta);
+say(action, "move key 3 left until it fits", 0.25);
+
+say(action, "6 > 3, shift 6 right", 0.25);
+par {
+flash(a.c4, magenta);
+flash(a.c5, magenta);
+say(a.c5, "6", 0.25);
+}
+to(comp, value, 9, 0.2);
+to(shifts, value, 7, 0.2);
+
+say(action, "5 > 3, shift 5 right", 0.25);
+par {
+flash(a.c3, magenta);
+flash(a.c4, magenta);
+say(a.c4, "5", 0.25);
+}
+to(comp, value, 10, 0.2);
+to(shifts, value, 8, 0.2);
+
+say(action, "4 > 3, shift 4 right", 0.25);
+par {
+flash(a.c2, magenta);
+flash(a.c3, magenta);
+say(a.c3, "4", 0.25);
+}
+to(comp, value, 11, 0.2);
+to(shifts, value, 9, 0.2);
+
+say(action, "2 <= 3, insert key after 2", 0.25);
+par {
+flash(a.c1, cyan);
+flash(a.c2, cyan);
+}
+to(comp, value, 12, 0.2);
+say(a.c2, "3", 0.28);
+show(prefix6, 0.25);
+
+say(pass, "done", 0.3);
+say(keybox, "key = none", 0.25);
+say(action, "every prefix is sorted, so the whole array is sorted", 0.35);
+par {
+flash(a.c0, lime);
+flash(a.c1, lime);
+flash(a.c2, lime);
+flash(a.c3, lime);
+flash(a.c4, lime);
+flash(a.c5, lime);
+}
+show(done, 0.5);
+pulse(done, 0.7);
+say(cap, "Insertion sort is complete.", 0.7);
+wait(1.0);

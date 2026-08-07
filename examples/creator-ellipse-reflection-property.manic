@@ -1,0 +1,59 @@
+// Existing-Manic treatment of animations/fig0120.asy.
+// The moving-locus source becomes a focused textbook problem with a solution.
+
+title("The Ellipse Reflection Property");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Optics tagline=Conics_explain_light yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=cyan secondary=gold footer=compact cta=Follow_the_ray safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Turn_Properties_Into_Stories cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080; let yy=h*0.48;
+text(kicker,(cx,h*0.10),"ELLIPSE · REFLECTION PROPERTY");
+text(head,(cx,h*0.17),"Where does a ray from F₁ go?");
+text(caption,(cx,h*0.79),"At the boundary, the tangent makes equal angles with the two focal segments.");
+equation(eq,(cx,h*0.72),`\angle(F_1PT)=\angle(TPF_2)`,31*u);
+size(kicker,20*u); bold(kicker); color(kicker,cyan);
+size(head,27*u); bold(head); wrap(head,w*0.76);
+size(caption,19*u); bold(caption); wrap(caption,w*0.72); color(caption,dim);
+
+ellipse(oval,(cx,yy),210*u,125*u,0); color(oval,cyan); stroke(oval,4); untraced(oval);
+dot(F1,(cx-170*u,yy),10*u); dot(F2,(cx+170*u,yy),10*u); color(F1,gold); color(F2,gold);
+dot(P,(cx+77*u,yy-116*u),9*u); color(P,magenta);
+line(inray,(cx-170*u,yy),(cx+77*u,yy-116*u)); color(inray,gold); stroke(inray,4); untraced(inray);
+line(outray,(cx+77*u,yy-116*u),(cx+170*u,yy)); color(outray,magenta); stroke(outray,4); untraced(outray);
+line(tangent,(cx-35*u,yy-145*u),(cx+210*u,yy-88*u)); color(tangent,dim); dashed(tangent,12); untraced(tangent);
+hidden(F1); hidden(F2); hidden(P);
+hidden(kicker); hidden(head); hidden(caption); hidden(eq);
+
+step("pose") {
+  par { show(kicker,0.3); show(head,0.4); show(caption,0.35); }
+  seq {
+    draw(oval,1.05,smooth);
+    par { show(F1,0.2); show(F2,0.2); }
+    show(P,0.2);
+  }
+}
+wait(0.85);
+step("send the ray") {
+  seq {
+    draw(inray,0.75,smooth);
+    draw(tangent,0.60,smooth);
+    say(caption,"At P, draw the tangent. It makes equal angles with PF₁ and PF₂.",0.40);
+  }
+}
+wait(0.85);
+step("reflect") { par { draw(outray,0.7,smooth); show(eq,0.45); say(caption,"Equal incidence and reflection angles force the outgoing ray through F₂.",0.45); } }
+wait(0.95);
+step("read the equal angles") {
+  par {
+    pulse(P,0.80);
+    say(caption,"The tangent bisects the exterior angle between PF₁ and PF₂, turning the geometric fact into the law of reflection.",0.65,smooth);
+  }
+}
+wait(1.0);
+step("solve") { par { pulse(F2,0.75); say(head,"Every focal ray reflects to the other focus.",0.45,smooth); } }
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(caption,0.3); fade(eq,0.3); fade(oval,0.3); fade(F1,0.3); fade(F2,0.3); fade(P,0.3); fade(inray,0.3); fade(outray,0.3); fade(tangent,0.3); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

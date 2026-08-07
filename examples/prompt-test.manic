@@ -1,0 +1,158 @@
+title("Integral Area");
+canvas("16:9");
+
+let gx = cx - 210;
+let gy = cy + 170;
+let sx = 120;
+let sy = 45;
+let n = 8;
+let dx = 2/n;
+
+text(head, (cx, 70), "integral as area under a curve");
+display(head);
+color(head, cyan);
+size(head, 30);
+hidden(head);
+
+text(cap, (cx, h - 55), "");
+display(cap);
+color(cap, fg);
+size(cap, 22);
+hidden(cap);
+
+axes(ax, (gx, gy), 330, 240, 60);
+color(ax, dim);
+stroke(ax, 2);
+untraced(ax);
+
+plot(curve, (gx, gy), sx, sy, "x^2", (0, 2.15));
+color(curve, lime);
+stroke(curve, 4);
+glow(curve, 8);
+untraced(curve);
+
+text(flabel, (gx + 285, gy - 205), "y = x^2");
+display(flabel);
+color(flabel, lime);
+size(flabel, 24);
+hidden(flabel);
+
+text(x0lbl, (gx, gy + 28), "0");
+display(x0lbl);
+color(x0lbl, fg);
+hidden(x0lbl);
+
+text(x2lbl, (gx + 2*sx, gy + 28), "2");
+display(x2lbl);
+color(x2lbl, fg);
+hidden(x2lbl);
+
+line(bound2, (gx + 2*sx, gy), (gx + 2*sx, gy - 4*sy));
+color(bound2, magenta);
+stroke(bound2, 3);
+untraced(bound2);
+
+bracelabel(interval, (gx, gy + 48), (gx + 2*sx, gy + 48), "0..2", 18);
+color(interval, cyan);
+hidden(interval);
+
+dot(point2, (gx + 2*sx, gy - 4*sy), 7);
+color(point2, magenta);
+glow(point2, 8);
+hidden(point2);
+
+text(eq, (cx + 275, cy - 110), "integral 0..2 x^2 dx");
+display(eq);
+color(eq, cyan);
+size(eq, 25);
+hidden(eq);
+
+text(areaNote, (cx + 275, cy - 70), "= signed area");
+display(areaNote);
+color(areaNote, fg);
+size(areaNote, 23);
+hidden(areaNote);
+
+counter(approx, (cx + 275, cy + 15), 0, 2, "rect sum = ", "");
+display(approx);
+color(approx, magenta);
+size(approx, 24);
+hidden(approx);
+
+text(rule, (cx + 275, cy + 85), "power rule: x^2 -> x^3/3");
+display(rule);
+color(rule, lime);
+size(rule, 22);
+hidden(rule);
+
+counter(exact, (cx + 275, cy + 130), 0, 2, "exact area = ", "");
+display(exact);
+color(exact, lime);
+size(exact, 26);
+hidden(exact);
+
+text(finalEq, (cx + 275, cy + 175), "8/3 = 2.67");
+display(finalEq);
+color(finalEq, cyan);
+size(finalEq, 24);
+hidden(finalEq);
+
+for i in 0..n {
+rect(r{i}, (gx + (i*dx + dx/2)*sx, gy - (((i + 1)*dx)^2)*sy/2), dx*sx, (((i + 1)*dx)^2)*sy);
+color(r{i}, cyan);
+outline(r{i}, cyan);
+filled(r{i});
+opacity(r{i}, 0.28);
+z(r{i}, -1);
+hidden(r{i});
+tag(r{i}, rects);
+}
+
+show(head, 0.6);
+show(cap, 0.4);
+say(cap, "An integral measures accumulated area.", 0.7);
+
+par {
+draw(ax, 0.8);
+show(x0lbl, 0.4);
+show(x2lbl, 0.4);
+}
+
+par {
+draw(curve, 1.1);
+show(flabel, 0.6);
+}
+say(cap, "Here the curve is y = x^2.", 0.6);
+
+par {
+show(eq, 0.5);
+show(areaNote, 0.5);
+draw(bound2, 0.6);
+show(point2, 0.5);
+show(interval, 0.5);
+}
+say(cap, "We want the area from x = 0 to x = 2.", 0.7);
+
+stagger(0.08) {
+for i in 0..n {
+show(r{i}, 0.25);
+}
+}
+show(approx, 0.4);
+to(approx, value, 3.19, 1.2, smooth);
+flash(rects, cyan);
+say(cap, "Rectangles approximate the area. More rectangles get closer.", 0.8);
+
+fade(rects, 0.7);
+say(cap, "Calculus gives the exact accumulated area.", 0.7);
+
+par {
+show(rule, 0.6);
+show(exact, 0.5);
+}
+to(exact, value, 2.67, 1.2, smooth);
+
+show(finalEq, 0.5);
+pulse(exact, 0.6);
+say(cap, "So integral 0..2 x^2 dx = 8/3.", 0.8);
+wait(0.8);

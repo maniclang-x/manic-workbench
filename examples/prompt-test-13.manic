@@ -1,0 +1,228 @@
+title("3D Butterfly");
+canvas("16:9");
+
+camera3((4.8, -7.2, 3.8), (0, 0, 1.35), 45, perspective);
+
+text(head, (cx, 55), "perfect 3D butterfly");
+display(head);
+color(head, cyan);
+size(head, 34);
+hidden(head);
+
+text(cap, (cx, h - 48), "");
+display(cap);
+color(cap, fg);
+size(cap, 21);
+hidden(cap);
+
+grid3(floor, (0, 0, -0.05), 3.4, 0.5);
+color(floor, dim);
+opacity(floor, 0.22);
+hidden(floor);
+
+revolve3(body, (0, 0, 0), "0.13 + 0.11sin(pi*t/2.2)", (0, 2.2), 36);
+color(body, dim);
+opacity(body, 0.92);
+hidden(body);
+
+sphere3(head3, (0, 0, 2.38), 0.23);
+color(head3, dim);
+hidden(head3);
+
+sphere3(eyeL, (-0.09, -0.19, 2.44), 0.045);
+sphere3(eyeR, (0.09, -0.19, 2.44), 0.045);
+color(eyeL, lime);
+color(eyeR, lime);
+hidden(eyeL);
+hidden(eyeR);
+
+param3(rUpper, "0.16 + 2.15u*(1 - 0.28v*v)", "0.18sin(pi*u)v", "1.25 + 1.25v*(1 - 0.20u) + 0.22sin(pi*u)", (0, 1), (0, 1), 36);
+param3(lUpper, "-0.16 - 2.15u*(1 - 0.28v*v)", "0.18sin(pi*u)v", "1.25 + 1.25v*(1 - 0.20u) + 0.22sin(pi*u)", (0, 1), (0, 1), 36);
+param3(rLower, "0.14 + 1.65u*(1 - 0.18v)", "0.12sin(pi*u)(1 - v)", "1.16 - 1.12u + 0.55v*(1 - 0.25u)", (0, 1), (0, 1), 36);
+param3(lLower, "-0.14 - 1.65u*(1 - 0.18v)", "0.12sin(pi*u)(1 - v)", "1.16 - 1.12u + 0.55v*(1 - 0.25*u)", (0, 1), (0, 1), 36);
+
+color(rUpper, cyan);
+color(lUpper, cyan);
+color(rLower, magenta);
+color(lLower, magenta);
+opacity(rUpper, 0.72);
+opacity(lUpper, 0.72);
+opacity(rLower, 0.76);
+opacity(lLower, 0.76);
+hidden(rUpper);
+hidden(lUpper);
+hidden(rLower);
+hidden(lLower);
+
+tag(rUpper, rightWing);
+tag(rLower, rightWing);
+tag(lUpper, leftWing);
+tag(lLower, leftWing);
+tag(rUpper, allWings);
+tag(rLower, allWings);
+tag(lUpper, allWings);
+tag(lLower, allWings);
+
+curve3(rBorderU, "0.16 + 2.15t*(1 - 0.28)", "0.18sin(pi*t)", "1.25 + 1.25*(1 - 0.20t) + 0.22sin(pi*t)", (0, 1));
+curve3(lBorderU, "-0.16 - 2.15t*(1 - 0.28)", "0.18sin(pi*t)", "1.25 + 1.25*(1 - 0.20t) + 0.22sin(pi*t)", (0, 1));
+curve3(rBorderL, "0.14 + 1.65t", "0.12sin(pi*t)", "1.16 - 1.12t", (0, 1));
+curve3(lBorderL, "-0.14 - 1.65t", "0.12sin(pi*t)", "1.16 - 1.12*t", (0, 1));
+
+color(rBorderU, cyan);
+color(lBorderU, cyan);
+color(rBorderL, magenta);
+color(lBorderL, magenta);
+thick(rBorderU, 0.025);
+thick(lBorderU, 0.025);
+thick(rBorderL, 0.025);
+thick(lBorderL, 0.025);
+untraced(rBorderU);
+untraced(lBorderU);
+untraced(rBorderL);
+untraced(lBorderL);
+
+curve3(rVein1, "0.15 + 1.95t", "0.03sin(pi*t)", "1.30 + 0.82t", (0, 1));
+curve3(rVein2, "0.15 + 1.65t", "0.02sin(pi*t)", "1.25 + 0.30t", (0, 1));
+curve3(rVein3, "0.14 + 1.35t", "0.02sin(pi*t)", "1.10 - 0.72t", (0, 1));
+curve3(lVein1, "-0.15 - 1.95t", "0.03sin(pi*t)", "1.30 + 0.82t", (0, 1));
+curve3(lVein2, "-0.15 - 1.65t", "0.02sin(pi*t)", "1.25 + 0.30t", (0, 1));
+curve3(lVein3, "-0.14 - 1.35t", "0.02sin(pi*t)", "1.10 - 0.72t", (0, 1));
+
+color(rVein1, fg);
+color(rVein2, fg);
+color(rVein3, fg);
+color(lVein1, fg);
+color(lVein2, fg);
+color(lVein3, fg);
+opacity(rVein1, 0.55);
+opacity(rVein2, 0.55);
+opacity(rVein3, 0.55);
+opacity(lVein1, 0.55);
+opacity(lVein2, 0.55);
+opacity(lVein3, 0.55);
+thick(rVein1, 0.018);
+thick(rVein2, 0.018);
+thick(rVein3, 0.018);
+thick(lVein1, 0.018);
+thick(lVein2, 0.018);
+thick(lVein3, 0.018);
+untraced(rVein1);
+untraced(rVein2);
+untraced(rVein3);
+untraced(lVein1);
+untraced(lVein2);
+untraced(lVein3);
+
+tag(rBorderU, rightWing);
+tag(rBorderL, rightWing);
+tag(rVein1, rightWing);
+tag(rVein2, rightWing);
+tag(rVein3, rightWing);
+tag(lBorderU, leftWing);
+tag(lBorderL, leftWing);
+tag(lVein1, leftWing);
+tag(lVein2, leftWing);
+tag(lVein3, leftWing);
+
+curve3(antL, "-0.04 - 0.50t", "-0.08 - 0.30t", "2.42 + 0.55t - 0.18*t*t", (0, 1));
+curve3(antR, "0.04 + 0.50t", "-0.08 - 0.30t", "2.42 + 0.55t - 0.18*t*t", (0, 1));
+color(antL, gold);
+color(antR, gold);
+thick(antL, 0.018);
+thick(antR, 0.018);
+untraced(antL);
+untraced(antR);
+
+sphere3(tipL, (-0.54, -0.38, 2.79), 0.055);
+sphere3(tipR, (0.54, -0.38, 2.79), 0.055);
+color(tipL, gold);
+color(tipR, gold);
+hidden(tipL);
+hidden(tipR);
+
+text(label1, (cx - 350, cy + 230), "transparent parametric wings");
+text(label2, (cx - 350, cy + 265), "3D body, antennae, veins, and flapping motion");
+display(label1);
+display(label2);
+color(label1, cyan);
+color(label2, lime);
+size(label1, 22);
+size(label2, 22);
+hidden(label1);
+hidden(label2);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "A butterfly can be built from smooth 3D surfaces and curves.", 0.7);
+
+par {
+show(floor, 0.5);
+show(body, 0.6);
+show(head3, 0.6);
+show(eyeL, 0.4);
+show(eyeR, 0.4);
+}
+say(cap, "First, the body and head.", 0.6);
+
+par {
+show(rUpper, 0.7);
+show(lUpper, 0.7);
+show(rLower, 0.7);
+show(lLower, 0.7);
+}
+say(cap, "Then four transparent wing surfaces.", 0.7);
+
+par {
+draw(rBorderU, 0.55);
+draw(lBorderU, 0.55);
+draw(rBorderL, 0.55);
+draw(lBorderL, 0.55);
+draw(rVein1, 0.55);
+draw(rVein2, 0.55);
+draw(rVein3, 0.55);
+draw(lVein1, 0.55);
+draw(lVein2, 0.55);
+draw(lVein3, 0.55);
+}
+say(cap, "Thin 3D curves become the wing borders and veins.", 0.7);
+
+par {
+draw(antL, 0.45);
+draw(antR, 0.45);
+show(tipL, 0.3);
+show(tipR, 0.3);
+}
+say(cap, "Antennae finish the butterfly shape.", 0.6);
+
+par {
+show(label1, 0.35);
+show(label2, 0.35);
+orbit3(28, 23, 7.0, 2.0, smooth);
+}
+say(cap, "Now add a gentle 3D camera move.", 0.7);
+
+par {
+rotate3(rightWing, (0, 18, 0), 0.55, smooth);
+rotate3(leftWing, (0, -18, 0), 0.55, smooth);
+}
+par {
+rotate3(rightWing, (0, -36, 0), 0.75, smooth);
+rotate3(leftWing, (0, 36, 0), 0.75, smooth);
+}
+par {
+rotate3(rightWing, (0, 28, 0), 0.65, smooth);
+rotate3(leftWing, (0, -28, 0), 0.65, smooth);
+}
+par {
+rotate3(rightWing, (0, -18, 0), 0.55, smooth);
+rotate3(leftWing, (0, 18, 0), 0.55, smooth);
+}
+say(cap, "The wings flap by rotating in opposite directions.", 0.7);
+
+par {
+flash(allWings, cyan);
+pulse(body, 0.7);
+pulse(head3, 0.7);
+}
+say(cap, "A complete stylized 3D butterfly.", 0.7);
+wait(1.0);

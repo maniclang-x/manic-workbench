@@ -1,0 +1,61 @@
+// Existing-Manic treatment of animations/fig0020.asy.
+// Solve one inversion exactly, then use nested circles to show the chain idea.
+
+title("Circle Inversion");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Geometry tagline=Transformations_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=gold secondary=cyan footer=compact cta=Invert_the_picture safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Make_Geometry_Move cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080; let oy=h*0.48; let s=75*u; let ox=w*0.23;
+text(kicker,(cx,h*0.10),"CIRCLE INVERSION · UNIT CIRCLE");
+text(head,(cx,h*0.17),"A circle has d = 3 and r = 1. Where does it go?");
+text(caption,(cx,h*0.79),"Inversion preserves circles, but changes their center and radius.");
+equation(work,(cx,h*0.68),`d'=\frac d{d^2-r^2},\qquad r'=\frac r{d^2-r^2}`,30*u);
+size(kicker,20*u); bold(kicker); color(kicker,gold);
+size(head,25*u); bold(head); wrap(head,w*0.76);
+size(caption,20*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+circle(inv,(ox,oy),s); outlined(inv); outline(inv,cyan); color(inv,panel); stroke(inv,3);
+dot(O,(ox,oy),8*u); color(O,gold);
+circle(before,(ox+3*s,oy),s); outlined(before); outline(before,magenta); color(before,panel); stroke(before,4);
+invertpath(after,before,O,s,300); outline(after,lime); color(after,lime); stroke(after,4);
+circle(c1,(ox+0.59*s,oy),0.09*s); circle(c2,(ox+0.73*s,oy),0.05*s);
+outlined(c1); outlined(c2); outline(c1,lime); outline(c2,lime);
+untraced(inv); untraced(before); untraced(after); untraced(c1); untraced(c2);
+hidden(O);
+hidden(kicker); hidden(head); hidden(caption); hidden(work);
+
+step("pose") {
+  par { show(kicker,0.3); show(head,0.45); show(caption,0.35); }
+  seq { draw(inv,0.65,smooth); show(O,0.2); draw(before,0.65,smooth); }
+}
+wait(0.85);
+step("calculate") {
+  rewrite(work,`d'=\frac38,\qquad r'=\frac18`,0.75,smooth);
+  say(caption,"Substitute d = 3 and r = 1. The image is a much smaller circle inside the inversion circle.",0.45);
+}
+wait(0.8);
+step("show the image") { par { draw(after,0.65,smooth); fade(before,0.35); pulse(after,0.65); } }
+wait(0.85);
+step("read the scale change") {
+  par {
+    pulse(after,0.85);
+    say(caption,"The original circle is far from O, so inversion compresses both its center distance and its radius.",0.60,smooth);
+  }
+}
+wait(0.95);
+step("continue the chain") {
+  seq {
+    draw(c1,0.45,smooth);
+    draw(c2,0.40,smooth);
+    say(caption,"Repeating the same circle rule produces a tangent chain.",0.40);
+  }
+}
+wait(1.0);
+step("solve") { say(head,"The denominator d² − r² controls the image.",0.45,smooth); }
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(caption,0.3); fade(work,0.3); fade(inv,0.3); fade(O,0.3); fade(after,0.3); fade(c1,0.3); fade(c2,0.3); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

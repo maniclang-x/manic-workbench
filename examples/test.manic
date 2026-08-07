@@ -1,0 +1,61 @@
+title("Why Thanos Feels Powerful");
+canvas("9:16");
+template("shorts");
+
+creator(brand,"name=Endgame_Feat_Breakdown footer=none safe=shorts accent=violet secondary=gold");
+
+text(head,(cx,110),"Why Thanos feels unstoppable"); size(head,58); color(head,fg); hidden(head);
+text(sub,(cx,175),"Endgame battle-feat breakdown"); size(sub,30); color(sub,dim); hidden(sub);
+
+equation(thesis,(cx,315),`\textcolor{violet}{\mathrm{POWER}} \approx \textcolor{gold}{\mathrm{STRENGTH}} + \textcolor{cyan}{\mathrm{DURABILITY}} + \textcolor{lime}{\mathrm{CONTROL}}`,52);
+hidden(thesis);
+
+line(rule,(cx-300,380),(cx+300,380)); color(rule,dim); hidden(rule);
+
+text(cap,(cx,h-120),""); size(cap,30); color(cap,dim); sticky(cap); hidden(cap);
+
+rect(r1,(cx,540),920,150); outlined(r1); color(r1,violet); hidden(r1);
+rect(bar1,(170,540),12,112); color(bar1,violet); hidden(bar1);
+text(n1,(245,520),"01"); size(n1,42); color(n1,violet); hidden(n1);
+text(d1,(320,515),"RAW STRENGTH\nHe wins the shove and the clinch."); size(d1,33); color(d1,fg); hidden(d1);
+tag(r1,feat1); tag(bar1,feat1); tag(n1,feat1); tag(d1,feat1);
+
+rect(r2,(cx,740),920,150); outlined(r2); color(r2,gold); hidden(r2);
+rect(bar2,(170,740),12,112); color(bar2,gold); hidden(bar2);
+text(n2,(245,720),"02"); size(n2,42); color(n2,gold); hidden(n2);
+text(d2,(320,715),"DURABILITY\nHe keeps fighting after heavy hits."); size(d2,33); color(d2,fg); hidden(d2);
+tag(r2,feat2); tag(bar2,feat2); tag(n2,feat2); tag(d2,feat2);
+
+rect(r3,(cx,940),920,150); outlined(r3); color(r3,cyan); hidden(r3);
+rect(bar3,(170,940),12,112); color(bar3,cyan); hidden(bar3);
+text(n3,(245,920),"03"); size(n3,42); color(n3,cyan); hidden(n3);
+text(d3,(320,915),"CONTROL\nWeapon skill, timing, and battlefield pressure."); size(d3,33); color(d3,fg); hidden(d3);
+tag(r3,feat3); tag(bar3,feat3); tag(n3,feat3); tag(d3,feat3);
+
+rect(endbox,(cx,1160),920,138); outlined(endbox); color(endbox,fg); hidden(endbox);
+text(endtxt,(cx,1140),"THAT COMBO IS WHY HE FEELS SO DANGEROUS"); size(endtxt,30); color(endtxt,fg); hidden(endtxt);
+text(endsub,(cx,1190),"Not one power — a stack of advantages."); size(endsub,28); color(endsub,dim); hidden(endsub);
+tag(endbox,final); tag(endtxt,final); tag(endsub,final);
+
+show(head,0.45);
+show(sub,0.35);
+show(thesis,0.55);
+show(rule,0.25);
+show(cap,0.2);
+say(cap,"He looks unstoppable because the whole fight stacks in his favor.");
+wait(0.25);
+
+show(feat1,0.45);
+say(cap,"First: raw strength. He can overpower the push.");
+wait(0.2);
+
+show(feat2,0.45);
+say(cap,"Second: durability. He absorbs punishment and keeps moving.");
+wait(0.2);
+
+show(feat3,0.45);
+say(cap,"Third: control. He uses weapons, timing, and space.");
+wait(0.2);
+
+show(final,0.5);
+say(cap,"That is why the Endgame battle feels so overwhelming.");

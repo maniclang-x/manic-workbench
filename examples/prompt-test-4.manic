@@ -1,0 +1,195 @@
+title("Trig Olympiad Check");
+canvas("16:9");
+
+text(head, (cx, 58), "olympiad trigonometry question");
+display(head);
+color(head, cyan);
+size(head, 31);
+hidden(head);
+
+text(cap, (cx, h - 48), "");
+display(cap);
+color(cap, fg);
+size(cap, 21);
+hidden(cap);
+
+text(q0, (cx, 120), "For alpha, beta in (0, pi/2):");
+text(q1, (cx, 160), "3 sin(alpha + beta) = 2 sin(alpha - beta)");
+text(q2, (cx, 205), "and tan alpha = k tan beta.");
+text(q3, (cx, 250), "Find k.");
+display(q0);
+display(q1);
+display(q2);
+display(q3);
+color(q0, fg);
+color(q1, lime);
+color(q2, fg);
+color(q3, cyan);
+size(q0, 24);
+size(q1, 29);
+size(q2, 24);
+size(q3, 28);
+hidden(q0);
+hidden(q1);
+hidden(q2);
+hidden(q3);
+
+line(div, (cx - 430, 290), (cx + 430, 290));
+color(div, dim);
+stroke(div, 2);
+untraced(div);
+
+text(s0, (cx, 335), "Expand both sine terms:");
+text(s1, (cx, 382), "3(sin a cos b + cos a sin b)");
+text(s2, (cx, 425), "= 2(sin a cos b - cos a sin b)");
+display(s0);
+display(s1);
+display(s2);
+color(s0, cyan);
+color(s1, fg);
+color(s2, fg);
+size(s0, 24);
+size(s1, 25);
+size(s2, 25);
+hidden(s0);
+hidden(s1);
+hidden(s2);
+
+text(s3, (cx, 485), "Move everything to one side:");
+text(s4, (cx, 532), "sin a cos b + 5 cos a sin b = 0");
+display(s3);
+display(s4);
+color(s3, cyan);
+color(s4, lime);
+size(s3, 24);
+size(s4, 29);
+hidden(s3);
+hidden(s4);
+
+text(pos0, (cx - 300, 610), "Since a,b are in (0,pi/2):");
+text(pos1, (cx - 25, 610), "sin a, cos b, cos a, sin b are all positive");
+text(pos2, (cx + 330, 610), "so the left side is positive");
+display(pos0);
+display(pos1);
+display(pos2);
+color(pos0, fg);
+color(pos1, cyan);
+color(pos2, magenta);
+size(pos0, 19);
+size(pos1, 19);
+size(pos2, 19);
+hidden(pos0);
+hidden(pos1);
+hidden(pos2);
+
+rect(bar1, (cx - 220, 665), 185, 18);
+rect(bar2, (cx + 50, 665), 260, 18);
+color(bar1, cyan);
+color(bar2, magenta);
+filled(bar1);
+filled(bar2);
+opacity(bar1, 0.45);
+opacity(bar2, 0.45);
+hidden(bar1);
+hidden(bar2);
+
+text(b1, (cx - 220, 695), "sin a cos b > 0");
+text(b2, (cx + 50, 695), "5 cos a sin b > 0");
+display(b1);
+display(b2);
+color(b1, cyan);
+color(b2, magenta);
+size(b1, 18);
+size(b2, 18);
+hidden(b1);
+hidden(b2);
+
+text(no0, (cx, 360), "Contradiction:");
+text(no1, (cx, 420), "positive + positive cannot equal 0");
+text(no2, (cx, 500), "No such alpha and beta exist.");
+text(no3, (cx, 560), "Therefore k is not defined.");
+display(no0);
+display(no1);
+display(no2);
+display(no3);
+color(no0, magenta);
+color(no1, fg);
+color(no2, cyan);
+color(no3, lime);
+size(no0, 32);
+size(no1, 28);
+size(no2, 30);
+size(no3, 34);
+hidden(no0);
+hidden(no1);
+hidden(no2);
+hidden(no3);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "First check whether the given condition can even happen.", 0.7);
+
+stagger(0.14) {
+show(q0, 0.3);
+show(q1, 0.3);
+show(q2, 0.3);
+show(q3, 0.3);
+}
+pulse(q1, 0.6);
+
+draw(div, 0.5);
+say(cap, "Use the addition and subtraction formulas for sine.", 0.7);
+
+stagger(0.16) {
+show(s0, 0.3);
+show(s1, 0.3);
+show(s2, 0.3);
+}
+flash(s1, cyan);
+flash(s2, cyan);
+
+stagger(0.16) {
+show(s3, 0.3);
+show(s4, 0.3);
+}
+pulse(s4, 0.6);
+say(cap, "The equation forces this sum to be zero.", 0.7);
+
+stagger(0.12) {
+show(pos0, 0.25);
+show(pos1, 0.25);
+show(pos2, 0.25);
+}
+
+par {
+show(bar1, 0.4);
+show(bar2, 0.4);
+show(b1, 0.4);
+show(b2, 0.4);
+}
+say(cap, "But every factor is positive in the first quadrant.", 0.7);
+
+par {
+fade(s0, 0.35);
+fade(s1, 0.35);
+fade(s2, 0.35);
+fade(s3, 0.35);
+fade(s4, 0.35);
+fade(pos0, 0.35);
+fade(pos1, 0.35);
+fade(pos2, 0.35);
+fade(bar1, 0.35);
+fade(bar2, 0.35);
+fade(b1, 0.35);
+fade(b2, 0.35);
+}
+
+stagger(0.18) {
+show(no0, 0.35);
+show(no1, 0.35);
+show(no2, 0.35);
+show(no3, 0.35);
+}
+pulse(no3, 0.7);
+say(cap, "So the problem as stated has no valid value of k.", 0.8);
+wait(1.0);

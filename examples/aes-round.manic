@@ -1,0 +1,70 @@
+title("AES-128 — One Round");
+canvas("portrait");
+template("mono");
+
+// --- headings ---
+text(hdr, (cx, 150), "AES-128 · Round 1");
+size(hdr, 46); bold(hdr); color(hdr, cyan);
+text(sub, (cx, 214), "the 4x4 state through four transforms");
+size(sub, 26); color(sub, dim);
+
+// --- the state, snapshot by snapshot (REAL AES trace values) ---
+// all stacked at one centre; revealed in sequence so the state transforms in place.
+matrix(s_load,  "00 44 88 cc; 11 55 99 dd; 22 66 aa ee; 33 77 bb ff", (cx, cy), 150, 132);
+matrix(s_k0,    "00 40 80 c0; 10 50 90 d0; 20 60 a0 e0; 30 70 b0 f0", (cx, cy), 150, 132);
+matrix(s_sub,   "63 09 cd ba; ca 53 60 70; b7 d0 e0 e1; 04 51 e7 8c", (cx, cy), 150, 132);
+matrix(s_shift, "63 09 cd ba; 53 60 70 ca; e0 e1 b7 d0; 8c 04 51 e7", (cx, cy), 150, 132);
+matrix(s_mix,   "5f 57 f7 1d; 72 f5 be b9; 64 bc 3b f9; 15 92 29 1a", (cx, cy), 150, 132);
+matrix(s_xor,   "89 85 2d cb; d8 5a 18 12; 10 ce 43 8f; e8 68 d8 e4", (cx, cy), 150, 132);
+hidden(s_k0); hidden(s_sub); hidden(s_shift); hidden(s_mix); hidden(s_xor);
+color(s_xor, lime);
+
+// --- per-step formula (real LaTeX), stacked above the state, revealed with each step ---
+equation(f_sub,   (cx, cy - 430), `b' = S(b)`, 42);
+equation(f_shift, (cx, cy - 430), `\text{row } r \lll r`, 42);
+equation(f_mix,   (cx, cy - 430), `c' = M\,c \quad (\mathrm{GF}(2^8))`, 42);
+equation(f_xor,   (cx, cy - 430), `\text{state} \oplus K_1`, 42);
+hidden(f_sub); hidden(f_shift); hidden(f_mix); hidden(f_xor);
+
+// --- caption (retext each step with `say`) ---
+text(cap, (cx, cy + 470), "16 bytes fill the state, column by column");
+size(cap, 30); wrap(cap, w*0.82);
+
+text(mark, (w - 150, h - 44), "Made with Manic");
+size(mark, 22); color(mark, dim);
+
+// --- timeline ---
+show(hdr, 0.4); show(sub, 0.4); show(mark, 0.4);
+show(s_load, 0.5); show(cap, 0.4);
+wait(0.9);
+
+step("AddRoundKey K0") {
+  say(cap, "AddRoundKey — XOR the cipher key K0", 0.3);
+  par { fade(s_load, 0.35); show(s_k0, 0.35); }
+}
+wait(0.7);
+
+step("SubBytes") {
+  say(cap, "SubBytes — every byte through the S-box", 0.3);
+  par { fade(s_k0, 0.35); show(s_sub, 0.35); show(f_sub, 0.35); }
+}
+wait(0.7);
+
+step("ShiftRows") {
+  say(cap, "ShiftRows — row r rotates left by r", 0.3);
+  par { fade(s_sub, 0.35); show(s_shift, 0.35); fade(f_sub, 0.2); show(f_shift, 0.35); }
+}
+wait(0.7);
+
+step("MixColumns") {
+  say(cap, "MixColumns — mix each column in GF(2^8)", 0.3);
+  par { fade(s_shift, 0.35); show(s_mix, 0.35); fade(f_shift, 0.2); show(f_mix, 0.35); }
+}
+wait(0.7);
+
+step("AddRoundKey K1") {
+  say(cap, "AddRoundKey — XOR round key K1 · one round done", 0.3);
+  par { fade(s_mix, 0.35); show(s_xor, 0.35); fade(f_mix, 0.2); show(f_xor, 0.35); }
+}
+pulse(s_xor, 0.8);
+wait(1.2);

@@ -1,0 +1,622 @@
+title("AES-128 — How It Works");
+canvas("portrait");
+template("mono");
+
+text(hdr, (cx, 120), "AES-128 · encrypt");  size(hdr, 42); bold(hdr); color(hdr, cyan);
+
+// --- FULL FLOW strip (you-are-here) ---
+text(chip0, (270, 210), "SubBytes");  size(chip0, 19); color(chip0, dim);
+text(chip1, (490, 210), "ShiftRows");  size(chip1, 19); color(chip1, dim);
+text(chip2, (700, 210), "MixColumns");  size(chip2, 19); color(chip2, dim);
+text(chip3, (900, 210), "AddRoundKey");  size(chip3, 19); color(chip3, dim);
+text(loop, (cx, 250), "the round repeats x10");  size(loop, 18); color(loop, dim);
+text(rnd, (cx, 300), "");  size(rnd, 24); color(rnd, cyan); bold(rnd);
+
+// --- the live 4x4 state (cells relabelled + highlighted in place) ---
+matrix(st, "00 44 88 cc; 11 55 99 dd; 22 66 aa ee; 33 77 bb ff", (cx, cy - 40), 150, 132);
+
+// --- formulas (one per op, shown when active) ---
+equation(f_sub,   (cx, cy - 470), `b' = S(b)`, 40);            hidden(f_sub);
+equation(f_shift, (cx, cy - 470), `\text{row } r \lll r`, 40);  hidden(f_shift);
+equation(f_mix,   (cx, cy - 470), `c' = M\,c`, 40);            hidden(f_mix);
+equation(f_xor,   (cx, cy - 470), `\text{state} \oplus K_n`, 40); hidden(f_xor);
+
+// --- secondary beat: S-box lookup callout (SubBytes) / round key (AddRoundKey) ---
+text(sbox, (cx, cy + 430), "");  size(sbox, 26); color(sbox, cyan);  hidden(sbox);
+matrix(rk, "00 00 00 00; 00 00 00 00; 00 00 00 00; 00 00 00 00", (cx, cy + 470), 120, 96);
+color(rk, lime); hidden(rk);
+text(rklab, (cx, cy + 300), "round key");  size(rklab, 20); color(rklab, dim); hidden(rklab);
+
+text(cap, (cx, h - 210), "");   size(cap, 28); wrap(cap, w*0.82); bold(cap);
+text(exp, (cx, h - 150), "");   size(exp, 22); color(exp, dim); wrap(exp, w*0.84);
+text(mark, (w - 150, h - 44), "Made with Manic");  size(mark, 22); color(mark, dim);
+
+// ---------- timeline ----------
+show(hdr, 0.4); show(mark, 0.4);
+show(chip0, 0.3);
+show(chip1, 0.3);
+show(chip2, 0.3);
+show(chip3, 0.3);
+show(loop, 0.3); show(st, 0.5);
+say(cap, "Load plaintext", 0.3);
+say(exp, "The 16-byte key splits into four 32-bit words w0..w3 — this is the first round key. The ot", 0.3);
+wait(0.8);
+
+step("Round 0 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "initial", 0.15);
+  par { show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "00", 0.25); say(st.r0c1, "40", 0.25); say(st.r0c2, "80", 0.25); say(st.r0c3, "c0", 0.25); say(st.r1c0, "10", 0.25); say(st.r1c1, "50", 0.25); say(st.r1c2, "90", 0.25); say(st.r1c3, "d0", 0.25); say(st.r2c0, "20", 0.25); say(st.r2c1, "60", 0.25); say(st.r2c2, "a0", 0.25); say(st.r2c3, "e0", 0.25); say(st.r3c0, "30", 0.25); say(st.r3c1, "70", 0.25); say(st.r3c2, "b0", 0.25); say(st.r3c3, "f0", 0.25); }
+  say(rk.r0c0, "00", 0.1); say(rk.r0c1, "04", 0.1); say(rk.r0c2, "08", 0.1); say(rk.r0c3, "0c", 0.1);
+  say(rk.r1c0, "01", 0.1); say(rk.r1c1, "05", 0.1); say(rk.r1c2, "09", 0.1); say(rk.r1c3, "0d", 0.1);
+  say(rk.r2c0, "02", 0.1); say(rk.r2c1, "06", 0.1); say(rk.r2c2, "0a", 0.1); say(rk.r2c3, "0e", 0.1);
+  say(rk.r3c0, "03", 0.1); say(rk.r3c1, "07", 0.1); say(rk.r3c2, "0b", 0.1); say(rk.r3c3, "0f", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 1 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 1 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "63", 0.25); say(st.r0c1, "09", 0.25); say(st.r0c2, "cd", 0.25); say(st.r0c3, "ba", 0.25); say(st.r1c0, "ca", 0.25); say(st.r1c1, "53", 0.25); say(st.r1c2, "60", 0.25); say(st.r1c3, "70", 0.25); say(st.r2c0, "b7", 0.25); say(st.r2c1, "d0", 0.25); say(st.r2c2, "e0", 0.25); say(st.r2c3, "e1", 0.25); say(st.r3c0, "04", 0.25); say(st.r3c1, "51", 0.25); say(st.r3c2, "e7", 0.25); say(st.r3c3, "8c", 0.25); }
+  par { say(sbox, "S-box:  00→63  10→ca  20→b7", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 1 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 1 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "63", 0.25); say(st.r0c1, "09", 0.25); say(st.r0c2, "cd", 0.25); say(st.r0c3, "ba", 0.25); say(st.r1c0, "53", 0.25); say(st.r1c1, "60", 0.25); say(st.r1c2, "70", 0.25); say(st.r1c3, "ca", 0.25); say(st.r2c0, "e0", 0.25); say(st.r2c1, "e1", 0.25); say(st.r2c2, "b7", 0.25); say(st.r2c3, "d0", 0.25); say(st.r3c0, "8c", 0.25); say(st.r3c1, "04", 0.25); say(st.r3c2, "51", 0.25); say(st.r3c3, "e7", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 1 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 1 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "5f", 0.25); say(st.r0c1, "57", 0.25); say(st.r0c2, "f7", 0.25); say(st.r0c3, "1d", 0.25); say(st.r1c0, "72", 0.25); say(st.r1c1, "f5", 0.25); say(st.r1c2, "be", 0.25); say(st.r1c3, "b9", 0.25); say(st.r2c0, "64", 0.25); say(st.r2c1, "bc", 0.25); say(st.r2c2, "3b", 0.25); say(st.r2c3, "f9", 0.25); say(st.r3c0, "15", 0.25); say(st.r3c1, "92", 0.25); say(st.r3c2, "29", 0.25); say(st.r3c3, "1a", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 1 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 1 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "89", 0.25); say(st.r0c1, "85", 0.25); say(st.r0c2, "2d", 0.25); say(st.r0c3, "cb", 0.25); say(st.r1c0, "d8", 0.25); say(st.r1c1, "5a", 0.25); say(st.r1c2, "18", 0.25); say(st.r1c3, "12", 0.25); say(st.r2c0, "10", 0.25); say(st.r2c1, "ce", 0.25); say(st.r2c2, "43", 0.25); say(st.r2c3, "8f", 0.25); say(st.r3c0, "e8", 0.25); say(st.r3c1, "68", 0.25); say(st.r3c2, "d8", 0.25); say(st.r3c3, "e4", 0.25); }
+  say(rk.r0c0, "d6", 0.1); say(rk.r0c1, "d2", 0.1); say(rk.r0c2, "da", 0.1); say(rk.r0c3, "d6", 0.1);
+  say(rk.r1c0, "aa", 0.1); say(rk.r1c1, "af", 0.1); say(rk.r1c2, "a6", 0.1); say(rk.r1c3, "ab", 0.1);
+  say(rk.r2c0, "74", 0.1); say(rk.r2c1, "72", 0.1); say(rk.r2c2, "78", 0.1); say(rk.r2c3, "76", 0.1);
+  say(rk.r3c0, "fd", 0.1); say(rk.r3c1, "fa", 0.1); say(rk.r3c2, "f1", 0.1); say(rk.r3c3, "fe", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 2 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 2 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "a7", 0.25); say(st.r0c1, "97", 0.25); say(st.r0c2, "d8", 0.25); say(st.r0c3, "1f", 0.25); say(st.r1c0, "61", 0.25); say(st.r1c1, "be", 0.25); say(st.r1c2, "ad", 0.25); say(st.r1c3, "c9", 0.25); say(st.r2c0, "ca", 0.25); say(st.r2c1, "8b", 0.25); say(st.r2c2, "1a", 0.25); say(st.r2c3, "73", 0.25); say(st.r3c0, "9b", 0.25); say(st.r3c1, "45", 0.25); say(st.r3c2, "61", 0.25); say(st.r3c3, "69", 0.25); }
+  par { say(sbox, "S-box:  89→a7  d8→61  10→ca", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 2 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 2 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "a7", 0.25); say(st.r0c1, "97", 0.25); say(st.r0c2, "d8", 0.25); say(st.r0c3, "1f", 0.25); say(st.r1c0, "be", 0.25); say(st.r1c1, "ad", 0.25); say(st.r1c2, "c9", 0.25); say(st.r1c3, "61", 0.25); say(st.r2c0, "1a", 0.25); say(st.r2c1, "73", 0.25); say(st.r2c2, "ca", 0.25); say(st.r2c3, "8b", 0.25); say(st.r3c0, "69", 0.25); say(st.r3c1, "9b", 0.25); say(st.r3c2, "45", 0.25); say(st.r3c3, "61", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 2 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 2 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "ff", 0.25); say(st.r0c1, "31", 0.25); say(st.r0c2, "64", 0.25); say(st.r0c3, "77", 0.25); say(st.r1c0, "87", 0.25); say(st.r1c1, "d8", 0.25); say(st.r1c2, "51", 0.25); say(st.r1c3, "3a", 0.25); say(st.r2c0, "96", 0.25); say(st.r2c1, "6a", 0.25); say(st.r2c2, "51", 0.25); say(st.r2c3, "d0", 0.25); say(st.r3c0, "84", 0.25); say(st.r3c1, "51", 0.25); say(st.r3c2, "fa", 0.25); say(st.r3c3, "09", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 2 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 2 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "49", 0.25); say(st.r0c1, "55", 0.25); say(st.r0c2, "da", 0.25); say(st.r0c3, "1f", 0.25); say(st.r1c0, "15", 0.25); say(st.r1c1, "e5", 0.25); say(st.r1c2, "ca", 0.25); say(st.r1c3, "0a", 0.25); say(st.r2c0, "59", 0.25); say(st.r2c1, "d7", 0.25); say(st.r2c2, "94", 0.25); say(st.r2c3, "63", 0.25); say(st.r3c0, "8f", 0.25); say(st.r3c1, "a0", 0.25); say(st.r3c2, "fa", 0.25); say(st.r3c3, "f7", 0.25); }
+  say(rk.r0c0, "b6", 0.1); say(rk.r0c1, "64", 0.1); say(rk.r0c2, "be", 0.1); say(rk.r0c3, "68", 0.1);
+  say(rk.r1c0, "92", 0.1); say(rk.r1c1, "3d", 0.1); say(rk.r1c2, "9b", 0.1); say(rk.r1c3, "30", 0.1);
+  say(rk.r2c0, "cf", 0.1); say(rk.r2c1, "bd", 0.1); say(rk.r2c2, "c5", 0.1); say(rk.r2c3, "b3", 0.1);
+  say(rk.r3c0, "0b", 0.1); say(rk.r3c1, "f1", 0.1); say(rk.r3c2, "00", 0.1); say(rk.r3c3, "fe", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 3 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 3 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "3b", 0.25); say(st.r0c1, "fc", 0.25); say(st.r0c2, "57", 0.25); say(st.r0c3, "c0", 0.25); say(st.r1c0, "59", 0.25); say(st.r1c1, "d9", 0.25); say(st.r1c2, "74", 0.25); say(st.r1c3, "67", 0.25); say(st.r2c0, "cb", 0.25); say(st.r2c1, "0e", 0.25); say(st.r2c2, "22", 0.25); say(st.r2c3, "fb", 0.25); say(st.r3c0, "73", 0.25); say(st.r3c1, "e0", 0.25); say(st.r3c2, "2d", 0.25); say(st.r3c3, "68", 0.25); }
+  par { say(sbox, "S-box:  49→3b  15→59  59→cb", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 3 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 3 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "3b", 0.25); say(st.r0c1, "fc", 0.25); say(st.r0c2, "57", 0.25); say(st.r0c3, "c0", 0.25); say(st.r1c0, "d9", 0.25); say(st.r1c1, "74", 0.25); say(st.r1c2, "67", 0.25); say(st.r1c3, "59", 0.25); say(st.r2c0, "22", 0.25); say(st.r2c1, "fb", 0.25); say(st.r2c2, "cb", 0.25); say(st.r2c3, "0e", 0.25); say(st.r3c0, "68", 0.25); say(st.r3c1, "73", 0.25); say(st.r3c2, "e0", 0.25); say(st.r3c3, "2d", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 3 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 3 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "4c", 0.25); say(st.r0c1, "f7", 0.25); say(st.r0c2, "2c", 0.25); say(st.r0c3, "53", 0.25); say(st.r1c0, "9c", 0.25); say(st.r1c1, "71", 0.25); say(st.r1c2, "3f", 0.25); say(st.r1c3, "4d", 0.25); say(st.r2c0, "1e", 0.25); say(st.r2c1, "f0", 0.25); say(st.r2c2, "86", 0.25); say(st.r2c3, "f2", 0.25); say(st.r3c0, "66", 0.25); say(st.r3c1, "76", 0.25); say(st.r3c2, "8e", 0.25); say(st.r3c3, "56", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 3 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 3 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "fa", 0.25); say(st.r0c1, "25", 0.25); say(st.r0c2, "40", 0.25); say(st.r0c3, "57", 0.25); say(st.r1c0, "63", 0.25); say(st.r1c1, "b3", 0.25); say(st.r1c2, "66", 0.25); say(st.r1c3, "24", 0.25); say(st.r2c0, "6a", 0.25); say(st.r2c1, "39", 0.25); say(st.r2c2, "8a", 0.25); say(st.r2c3, "4d", 0.25); say(st.r3c0, "28", 0.25); say(st.r3c1, "c9", 0.25); say(st.r3c2, "31", 0.25); say(st.r3c3, "17", 0.25); }
+  say(rk.r0c0, "b6", 0.1); say(rk.r0c1, "d2", 0.1); say(rk.r0c2, "6c", 0.1); say(rk.r0c3, "04", 0.1);
+  say(rk.r1c0, "ff", 0.1); say(rk.r1c1, "c2", 0.1); say(rk.r1c2, "59", 0.1); say(rk.r1c3, "69", 0.1);
+  say(rk.r2c0, "74", 0.1); say(rk.r2c1, "c9", 0.1); say(rk.r2c2, "0c", 0.1); say(rk.r2c3, "bf", 0.1);
+  say(rk.r3c0, "4e", 0.1); say(rk.r3c1, "bf", 0.1); say(rk.r3c2, "bf", 0.1); say(rk.r3c3, "41", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 4 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 4 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "2d", 0.25); say(st.r0c1, "3f", 0.25); say(st.r0c2, "09", 0.25); say(st.r0c3, "5b", 0.25); say(st.r1c0, "fb", 0.25); say(st.r1c1, "6d", 0.25); say(st.r1c2, "33", 0.25); say(st.r1c3, "36", 0.25); say(st.r2c0, "02", 0.25); say(st.r2c1, "12", 0.25); say(st.r2c2, "7e", 0.25); say(st.r2c3, "e3", 0.25); say(st.r3c0, "34", 0.25); say(st.r3c1, "dd", 0.25); say(st.r3c2, "c7", 0.25); say(st.r3c3, "f0", 0.25); }
+  par { say(sbox, "S-box:  fa→2d  63→fb  6a→02", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 4 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 4 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "2d", 0.25); say(st.r0c1, "3f", 0.25); say(st.r0c2, "09", 0.25); say(st.r0c3, "5b", 0.25); say(st.r1c0, "6d", 0.25); say(st.r1c1, "33", 0.25); say(st.r1c2, "36", 0.25); say(st.r1c3, "fb", 0.25); say(st.r2c0, "7e", 0.25); say(st.r2c1, "e3", 0.25); say(st.r2c2, "02", 0.25); say(st.r2c3, "12", 0.25); say(st.r3c0, "f0", 0.25); say(st.r3c1, "34", 0.25); say(st.r3c2, "dd", 0.25); say(st.r3c3, "c7", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 4 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 4 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "63", 0.25); say(st.r0c1, "fc", 0.25); say(st.r0c2, "97", 0.25); say(st.r0c3, "75", 0.25); say(st.r1c0, "85", 0.25); say(st.r1c1, "53", 0.25); say(st.r1c2, "be", 0.25); say(st.r1c3, "47", 0.25); say(st.r2c0, "b7", 0.25); say(st.r2c1, "8d", 0.25); say(st.r2c2, "47", 0.25); say(st.r2c3, "d6", 0.25); say(st.r3c0, "9f", 0.25); say(st.r3c1, "f9", 0.25); say(st.r3c2, "8e", 0.25); say(st.r3c3, "91", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 4 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 4 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "24", 0.25); say(st.r0c1, "69", 0.25); say(st.r0c2, "6e", 0.25); say(st.r0c3, "88", 0.25); say(st.r1c0, "72", 0.25); say(st.r1c1, "66", 0.25); say(st.r1c2, "d2", 0.25); say(st.r1c3, "42", 0.25); say(st.r2c0, "40", 0.25); say(st.r2c1, "b3", 0.25); say(st.r2c2, "75", 0.25); say(st.r2c3, "5b", 0.25); say(st.r3c0, "23", 0.25); say(st.r3c1, "fa", 0.25); say(st.r3c2, "32", 0.25); say(st.r3c3, "6c", 0.25); }
+  say(rk.r0c0, "47", 0.1); say(rk.r0c1, "95", 0.1); say(rk.r0c2, "f9", 0.1); say(rk.r0c3, "fd", 0.1);
+  say(rk.r1c0, "f7", 0.1); say(rk.r1c1, "35", 0.1); say(rk.r1c2, "6c", 0.1); say(rk.r1c3, "05", 0.1);
+  say(rk.r2c0, "f7", 0.1); say(rk.r2c1, "3e", 0.1); say(rk.r2c2, "32", 0.1); say(rk.r2c3, "8d", 0.1);
+  say(rk.r3c0, "bc", 0.1); say(rk.r3c1, "03", 0.1); say(rk.r3c2, "bc", 0.1); say(rk.r3c3, "fd", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 5 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 5 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "36", 0.25); say(st.r0c1, "f9", 0.25); say(st.r0c2, "9f", 0.25); say(st.r0c3, "c4", 0.25); say(st.r1c0, "40", 0.25); say(st.r1c1, "33", 0.25); say(st.r1c2, "b5", 0.25); say(st.r1c3, "2c", 0.25); say(st.r2c0, "09", 0.25); say(st.r2c1, "6d", 0.25); say(st.r2c2, "9d", 0.25); say(st.r2c3, "39", 0.25); say(st.r3c0, "26", 0.25); say(st.r3c1, "2d", 0.25); say(st.r3c2, "23", 0.25); say(st.r3c3, "50", 0.25); }
+  par { say(sbox, "S-box:  24→36  72→40  40→09", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 5 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 5 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "36", 0.25); say(st.r0c1, "f9", 0.25); say(st.r0c2, "9f", 0.25); say(st.r0c3, "c4", 0.25); say(st.r1c0, "33", 0.25); say(st.r1c1, "b5", 0.25); say(st.r1c2, "2c", 0.25); say(st.r1c3, "40", 0.25); say(st.r2c0, "9d", 0.25); say(st.r2c1, "39", 0.25); say(st.r2c2, "09", 0.25); say(st.r2c3, "6d", 0.25); say(st.r3c0, "50", 0.25); say(st.r3c1, "26", 0.25); say(st.r3c2, "2d", 0.25); say(st.r3c3, "23", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 5 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 5 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "f4", 0.25); say(st.r0c1, "32", 0.25); say(st.r0c2, "75", 0.25); say(st.r0c3, "1d", 0.25); say(st.r1c0, "bc", 0.25); say(st.r1c1, "e5", 0.25); say(st.r1c2, "f1", 0.25); say(st.r1c3, "d0", 0.25); say(st.r2c0, "d4", 0.25); say(st.r2c1, "54", 0.25); say(st.r2c2, "d6", 0.25); say(st.r2c3, "3b", 0.25); say(st.r3c0, "54", 0.25); say(st.r3c1, "d0", 0.25); say(st.r3c2, "c5", 0.25); say(st.r3c3, "3c", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 5 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 5 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "c8", 0.25); say(st.r0c1, "9b", 0.25); say(st.r0c2, "25", 0.25); say(st.r0c3, "b0", 0.25); say(st.r1c0, "16", 0.25); say(st.r1c1, "7a", 0.25); say(st.r1c2, "02", 0.25); say(st.r1c3, "26", 0.25); say(st.r2c0, "77", 0.25); say(st.r2c1, "c9", 0.25); say(st.r2c2, "79", 0.25); say(st.r2c3, "19", 0.25); say(st.r3c0, "bc", 0.25); say(st.r3c1, "3b", 0.25); say(st.r3c2, "92", 0.25); say(st.r3c3, "96", 0.25); }
+  say(rk.r0c0, "3c", 0.1); say(rk.r0c1, "a9", 0.1); say(rk.r0c2, "50", 0.1); say(rk.r0c3, "ad", 0.1);
+  say(rk.r1c0, "aa", 0.1); say(rk.r1c1, "9f", 0.1); say(rk.r1c2, "f3", 0.1); say(rk.r1c3, "f6", 0.1);
+  say(rk.r2c0, "a3", 0.1); say(rk.r2c1, "9d", 0.1); say(rk.r2c2, "af", 0.1); say(rk.r2c3, "22", 0.1);
+  say(rk.r3c0, "e8", 0.1); say(rk.r3c1, "eb", 0.1); say(rk.r3c2, "57", 0.1); say(rk.r3c3, "aa", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 6 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 6 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "e8", 0.25); say(st.r0c1, "14", 0.25); say(st.r0c2, "3f", 0.25); say(st.r0c3, "e7", 0.25); say(st.r1c0, "47", 0.25); say(st.r1c1, "da", 0.25); say(st.r1c2, "77", 0.25); say(st.r1c3, "f7", 0.25); say(st.r2c0, "f5", 0.25); say(st.r2c1, "dd", 0.25); say(st.r2c2, "b6", 0.25); say(st.r2c3, "d4", 0.25); say(st.r3c0, "65", 0.25); say(st.r3c1, "e2", 0.25); say(st.r3c2, "4f", 0.25); say(st.r3c3, "90", 0.25); }
+  par { say(sbox, "S-box:  c8→e8  16→47  77→f5", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 6 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 6 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "e8", 0.25); say(st.r0c1, "14", 0.25); say(st.r0c2, "3f", 0.25); say(st.r0c3, "e7", 0.25); say(st.r1c0, "da", 0.25); say(st.r1c1, "77", 0.25); say(st.r1c2, "f7", 0.25); say(st.r1c3, "47", 0.25); say(st.r2c0, "b6", 0.25); say(st.r2c1, "d4", 0.25); say(st.r2c2, "f5", 0.25); say(st.r2c3, "dd", 0.25); say(st.r3c0, "90", 0.25); say(st.r3c1, "65", 0.25); say(st.r3c2, "e2", 0.25); say(st.r3c3, "4f", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 6 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 6 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "98", 0.25); say(st.r0c1, "00", 0.25); say(st.r0c2, "6b", 0.25); say(st.r0c3, "8e", 0.25); say(st.r1c0, "16", 0.25); say(st.r1c1, "f8", 0.25); say(st.r1c2, "2c", 0.25); say(st.r1c3, "5a", 0.25); say(st.r2c0, "ee", 0.25); say(st.r2c1, "7f", 0.25); say(st.r2c2, "04", 0.25); say(st.r2c3, "d0", 0.25); say(st.r3c0, "74", 0.25); say(st.r3c1, "55", 0.25); say(st.r3c2, "9c", 0.25); say(st.r3c3, "36", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 6 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 6 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "c6", 0.25); say(st.r0c1, "f7", 0.25); say(st.r0c2, "cc", 0.25); say(st.r0c3, "84", 0.25); say(st.r1c0, "2f", 0.25); say(st.r1c1, "5e", 0.25); say(st.r1c2, "79", 0.25); say(st.r1c3, "f9", 0.25); say(st.r2c0, "e1", 0.25); say(st.r2c1, "ed", 0.25); say(st.r2c2, "39", 0.25); say(st.r2c3, "cf", 0.25); say(st.r3c0, "09", 0.25); say(st.r3c1, "c3", 0.25); say(st.r3c2, "5d", 0.25); say(st.r3c3, "5d", 0.25); }
+  say(rk.r0c0, "5e", 0.1); say(rk.r0c1, "f7", 0.1); say(rk.r0c2, "a7", 0.1); say(rk.r0c3, "0a", 0.1);
+  say(rk.r1c0, "39", 0.1); say(rk.r1c1, "a6", 0.1); say(rk.r1c2, "55", 0.1); say(rk.r1c3, "a3", 0.1);
+  say(rk.r2c0, "0f", 0.1); say(rk.r2c1, "92", 0.1); say(rk.r2c2, "3d", 0.1); say(rk.r2c3, "1f", 0.1);
+  say(rk.r3c0, "7d", 0.1); say(rk.r3c1, "96", 0.1); say(rk.r3c2, "c1", 0.1); say(rk.r3c3, "6b", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 7 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 7 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "b4", 0.25); say(st.r0c1, "68", 0.25); say(st.r0c2, "4b", 0.25); say(st.r0c3, "5f", 0.25); say(st.r1c0, "15", 0.25); say(st.r1c1, "58", 0.25); say(st.r1c2, "b6", 0.25); say(st.r1c3, "99", 0.25); say(st.r2c0, "f8", 0.25); say(st.r2c1, "55", 0.25); say(st.r2c2, "12", 0.25); say(st.r2c3, "8a", 0.25); say(st.r3c0, "01", 0.25); say(st.r3c1, "2e", 0.25); say(st.r3c2, "4c", 0.25); say(st.r3c3, "4c", 0.25); }
+  par { say(sbox, "S-box:  c6→b4  2f→15  e1→f8", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 7 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 7 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "b4", 0.25); say(st.r0c1, "68", 0.25); say(st.r0c2, "4b", 0.25); say(st.r0c3, "5f", 0.25); say(st.r1c0, "58", 0.25); say(st.r1c1, "b6", 0.25); say(st.r1c2, "99", 0.25); say(st.r1c3, "15", 0.25); say(st.r2c0, "12", 0.25); say(st.r2c1, "8a", 0.25); say(st.r2c2, "f8", 0.25); say(st.r2c3, "55", 0.25); say(st.r3c0, "4c", 0.25); say(st.r3c1, "01", 0.25); say(st.r3c2, "2e", 0.25); say(st.r3c3, "4c", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 7 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 7 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "c5", 0.25); say(st.r0c1, "9a", 0.25); say(st.r0c2, "f0", 0.25); say(st.r0c3, "98", 0.25); say(st.r1c0, "7e", 0.25); say(st.r1c1, "9b", 0.25); say(st.r1c2, "5f", 0.25); say(st.r1c3, "c6", 0.25); say(st.r2c0, "1c", 0.25); say(st.r2c1, "d2", 0.25); say(st.r2c2, "4b", 0.25); say(st.r2c3, "34", 0.25); say(st.r3c0, "15", 0.25); say(st.r3c1, "86", 0.25); say(st.r3c2, "e0", 0.25); say(st.r3c3, "39", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 7 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 7 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "d1", 0.25); say(st.r0c1, "79", 0.25); say(st.r0c2, "b4", 0.25); say(st.r0c3, "d6", 0.25); say(st.r1c0, "87", 0.25); say(st.r1c1, "c4", 0.25); say(st.r1c2, "55", 0.25); say(st.r1c3, "6f", 0.25); say(st.r2c0, "6c", 0.25); say(st.r2c1, "30", 0.25); say(st.r2c2, "94", 0.25); say(st.r2c3, "f4", 0.25); say(st.r3c0, "0f", 0.25); say(st.r3c1, "0a", 0.25); say(st.r3c2, "ad", 0.25); say(st.r3c3, "1f", 0.25); }
+  say(rk.r0c0, "14", 0.1); say(rk.r0c1, "e3", 0.1); say(rk.r0c2, "44", 0.1); say(rk.r0c3, "4e", 0.1);
+  say(rk.r1c0, "f9", 0.1); say(rk.r1c1, "5f", 0.1); say(rk.r1c2, "0a", 0.1); say(rk.r1c3, "a9", 0.1);
+  say(rk.r2c0, "70", 0.1); say(rk.r2c1, "e2", 0.1); say(rk.r2c2, "df", 0.1); say(rk.r2c3, "c0", 0.1);
+  say(rk.r3c0, "1a", 0.1); say(rk.r3c1, "8c", 0.1); say(rk.r3c2, "4d", 0.1); say(rk.r3c3, "26", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 8 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 8 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "3e", 0.25); say(st.r0c1, "b6", 0.25); say(st.r0c2, "8d", 0.25); say(st.r0c3, "f6", 0.25); say(st.r1c0, "17", 0.25); say(st.r1c1, "1c", 0.25); say(st.r1c2, "fc", 0.25); say(st.r1c3, "a8", 0.25); say(st.r2c0, "50", 0.25); say(st.r2c1, "04", 0.25); say(st.r2c2, "22", 0.25); say(st.r2c3, "bf", 0.25); say(st.r3c0, "76", 0.25); say(st.r3c1, "67", 0.25); say(st.r3c2, "95", 0.25); say(st.r3c3, "c0", 0.25); }
+  par { say(sbox, "S-box:  d1→3e  87→17  6c→50", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 8 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 8 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "3e", 0.25); say(st.r0c1, "b6", 0.25); say(st.r0c2, "8d", 0.25); say(st.r0c3, "f6", 0.25); say(st.r1c0, "1c", 0.25); say(st.r1c1, "fc", 0.25); say(st.r1c2, "a8", 0.25); say(st.r1c3, "17", 0.25); say(st.r2c0, "22", 0.25); say(st.r2c1, "bf", 0.25); say(st.r2c2, "50", 0.25); say(st.r2c3, "04", 0.25); say(st.r3c0, "c0", 0.25); say(st.r3c1, "76", 0.25); say(st.r3c2, "67", 0.25); say(st.r3c3, "95", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 8 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 8 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "ba", 0.25); say(st.r0c1, "a1", 0.25); say(st.r0c2, "d5", 0.25); say(st.r0c3, "5f", 0.25); say(st.r1c0, "a0", 0.25); say(st.r1c1, "f9", 0.25); say(st.r1c2, "51", 0.25); say(st.r1c3, "41", 0.25); say(st.r2c0, "3d", 0.25); say(st.r2c1, "b5", 0.25); say(st.r2c2, "2c", 0.25); say(st.r2c3, "4d", 0.25); say(st.r3c0, "e7", 0.25); say(st.r3c1, "6e", 0.25); say(st.r3c2, "ba", 0.25); say(st.r3c3, "23", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 8 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 8 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "fd", 0.25); say(st.r0c1, "05", 0.25); say(st.r0c2, "35", 0.25); say(st.r0c3, "f1", 0.25); say(st.r1c0, "e3", 0.25); say(st.r1c1, "e5", 0.25); say(st.r1c2, "47", 0.25); say(st.r1c3, "fe", 0.25); say(st.r2c0, "ba", 0.25); say(st.r2c1, "d0", 0.25); say(st.r2c2, "96", 0.25); say(st.r2c3, "37", 0.25); say(st.r3c0, "d2", 0.25); say(st.r3c1, "d7", 0.25); say(st.r3c2, "4e", 0.25); say(st.r3c3, "f1", 0.25); }
+  say(rk.r0c0, "47", 0.1); say(rk.r0c1, "a4", 0.1); say(rk.r0c2, "e0", 0.1); say(rk.r0c3, "ae", 0.1);
+  say(rk.r1c0, "43", 0.1); say(rk.r1c1, "1c", 0.1); say(rk.r1c2, "16", 0.1); say(rk.r1c3, "bf", 0.1);
+  say(rk.r2c0, "87", 0.1); say(rk.r2c1, "65", 0.1); say(rk.r2c2, "ba", 0.1); say(rk.r2c3, "7a", 0.1);
+  say(rk.r3c0, "35", 0.1); say(rk.r3c1, "b9", 0.1); say(rk.r3c2, "f4", 0.1); say(rk.r3c3, "d2", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 9 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 9 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "54", 0.25); say(st.r0c1, "6b", 0.25); say(st.r0c2, "96", 0.25); say(st.r0c3, "a1", 0.25); say(st.r1c0, "11", 0.25); say(st.r1c1, "d9", 0.25); say(st.r1c2, "a0", 0.25); say(st.r1c3, "bb", 0.25); say(st.r2c0, "f4", 0.25); say(st.r2c1, "70", 0.25); say(st.r2c2, "90", 0.25); say(st.r2c3, "9a", 0.25); say(st.r3c0, "b5", 0.25); say(st.r3c1, "0e", 0.25); say(st.r3c2, "2f", 0.25); say(st.r3c3, "a1", 0.25); }
+  par { say(sbox, "S-box:  fd→54  e3→11  ba→f4", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 9 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 9 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "54", 0.25); say(st.r0c1, "6b", 0.25); say(st.r0c2, "96", 0.25); say(st.r0c3, "a1", 0.25); say(st.r1c0, "d9", 0.25); say(st.r1c1, "a0", 0.25); say(st.r1c2, "bb", 0.25); say(st.r1c3, "11", 0.25); say(st.r2c0, "90", 0.25); say(st.r2c1, "9a", 0.25); say(st.r2c2, "f4", 0.25); say(st.r2c3, "70", 0.25); say(st.r3c0, "a1", 0.25); say(st.r3c1, "b5", 0.25); say(st.r3c2, "0e", 0.25); say(st.r3c3, "2f", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 9 · mix") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, magenta, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 9 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_mix, 0.2); recolor(st, magenta, 0.2); say(st.r0c0, "e9", 0.25); say(st.r0c1, "02", 0.25); say(st.r0c2, "1b", 0.25); say(st.r0c3, "35", 0.25); say(st.r1c0, "f7", 0.25); say(st.r1c1, "30", 0.25); say(st.r1c2, "f2", 0.25); say(st.r1c3, "3c", 0.25); say(st.r2c0, "4e", 0.25); say(st.r2c1, "20", 0.25); say(st.r2c2, "cc", 0.25); say(st.r2c3, "21", 0.25); say(st.r3c0, "ec", 0.25); say(st.r3c1, "f6", 0.25); say(st.r3c2, "f2", 0.25); say(st.r3c3, "c7", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "MixColumns", 0.2);
+  say(exp, "Each column is multiplied by the fixed AES matrix over GF(2^8).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 9 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 9 / 10", 0.15);
+  par { fade(f_mix, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "bd", 0.25); say(st.r0c1, "f2", 0.25); say(st.r0c2, "0b", 0.25); say(st.r0c3, "8b", 0.25); say(st.r1c0, "6e", 0.25); say(st.r1c1, "b5", 0.25); say(st.r1c2, "61", 0.25); say(st.r1c3, "10", 0.25); say(st.r2c0, "7c", 0.25); say(st.r2c1, "77", 0.25); say(st.r2c2, "21", 0.25); say(st.r2c3, "b6", 0.25); say(st.r3c0, "3d", 0.25); say(st.r3c1, "9e", 0.25); say(st.r3c2, "6e", 0.25); say(st.r3c3, "89", 0.25); }
+  say(rk.r0c0, "54", 0.1); say(rk.r0c1, "f0", 0.1); say(rk.r0c2, "10", 0.1); say(rk.r0c3, "be", 0.1);
+  say(rk.r1c0, "99", 0.1); say(rk.r1c1, "85", 0.1); say(rk.r1c2, "93", 0.1); say(rk.r1c3, "2c", 0.1);
+  say(rk.r2c0, "32", 0.1); say(rk.r2c1, "57", 0.1); say(rk.r2c2, "ed", 0.1); say(rk.r2c3, "97", 0.1);
+  say(rk.r3c0, "d1", 0.1); say(rk.r3c1, "68", 0.1); say(rk.r3c2, "9c", 0.1); say(rk.r3c3, "4e", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 10 · sub") {
+  recolor(chip0, cyan, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 10 / 10", 0.15);
+  par { fade(f_xor, 0.15); show(f_sub, 0.2); recolor(st, cyan, 0.2); say(st.r0c0, "7a", 0.25); say(st.r0c1, "89", 0.25); say(st.r0c2, "2b", 0.25); say(st.r0c3, "3d", 0.25); say(st.r1c0, "9f", 0.25); say(st.r1c1, "d5", 0.25); say(st.r1c2, "ef", 0.25); say(st.r1c3, "ca", 0.25); say(st.r2c0, "10", 0.25); say(st.r2c1, "f5", 0.25); say(st.r2c2, "fd", 0.25); say(st.r2c3, "4e", 0.25); say(st.r3c0, "27", 0.25); say(st.r3c1, "0b", 0.25); say(st.r3c2, "9f", 0.25); say(st.r3c3, "a7", 0.25); }
+  par { say(sbox, "S-box:  bd→7a  6e→9f  7c→10", 0.2); show(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "SubBytes", 0.2);
+  say(exp, "Each byte is replaced via the S-box (row = high nibble, col = low nibble).", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 10 · permute") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, gold, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, dim, 0.15);
+  say(rnd, "Round 10 / 10", 0.15);
+  par { fade(f_sub, 0.15); show(f_shift, 0.2); recolor(st, gold, 0.2); say(st.r0c0, "7a", 0.25); say(st.r0c1, "89", 0.25); say(st.r0c2, "2b", 0.25); say(st.r0c3, "3d", 0.25); say(st.r1c0, "d5", 0.25); say(st.r1c1, "ef", 0.25); say(st.r1c2, "ca", 0.25); say(st.r1c3, "9f", 0.25); say(st.r2c0, "fd", 0.25); say(st.r2c1, "4e", 0.25); say(st.r2c2, "10", 0.25); say(st.r2c3, "f5", 0.25); say(st.r3c0, "a7", 0.25); say(st.r3c1, "27", 0.25); say(st.r3c2, "0b", 0.25); say(st.r3c3, "9f", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "ShiftRows", 0.2);
+  say(exp, "Row 0 is unchanged; row r is cyclically left-shifted by r bytes.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Round 10 · xor") {
+  recolor(chip0, dim, 0.15);
+  recolor(chip1, dim, 0.15);
+  recolor(chip2, dim, 0.15);
+  recolor(chip3, lime, 0.15);
+  say(rnd, "Round 10 / 10", 0.15);
+  par { fade(f_shift, 0.15); show(f_xor, 0.2); recolor(st, lime, 0.2); say(st.r0c0, "69", 0.25); say(st.r0c1, "6a", 0.25); say(st.r0c2, "d8", 0.25); say(st.r0c3, "70", 0.25); say(st.r1c0, "c4", 0.25); say(st.r1c1, "7b", 0.25); say(st.r1c2, "cd", 0.25); say(st.r1c3, "b4", 0.25); say(st.r2c0, "e0", 0.25); say(st.r2c1, "04", 0.25); say(st.r2c2, "b7", 0.25); say(st.r2c3, "c5", 0.25); say(st.r3c0, "d8", 0.25); say(st.r3c1, "30", 0.25); say(st.r3c2, "80", 0.25); say(st.r3c3, "5a", 0.25); }
+  say(rk.r0c0, "13", 0.1); say(rk.r0c1, "e3", 0.1); say(rk.r0c2, "f3", 0.1); say(rk.r0c3, "4d", 0.1);
+  say(rk.r1c0, "11", 0.1); say(rk.r1c1, "94", 0.1); say(rk.r1c2, "07", 0.1); say(rk.r1c3, "2b", 0.1);
+  say(rk.r2c0, "1d", 0.1); say(rk.r2c1, "4a", 0.1); say(rk.r2c2, "a7", 0.1); say(rk.r2c3, "30", 0.1);
+  say(rk.r3c0, "7f", 0.1); say(rk.r3c1, "17", 0.1); say(rk.r3c2, "8b", 0.1); say(rk.r3c3, "c5", 0.1);
+  par { show(rk, 0.2); show(rklab, 0.2); fade(sbox, 0.2); }
+  say(cap, "AddRoundKey", 0.2);
+  say(exp, "Each state byte is XORed with the matching round-key byte.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+step("Output · emit") {
+  par { fade(f_xor, 0.15); recolor(st, lime, 0.2); say(st.r0c0, "69", 0.25); say(st.r0c1, "6a", 0.25); say(st.r0c2, "d8", 0.25); say(st.r0c3, "70", 0.25); say(st.r1c0, "c4", 0.25); say(st.r1c1, "7b", 0.25); say(st.r1c2, "cd", 0.25); say(st.r1c3, "b4", 0.25); say(st.r2c0, "e0", 0.25); say(st.r2c1, "04", 0.25); say(st.r2c2, "b7", 0.25); say(st.r2c3, "c5", 0.25); say(st.r3c0, "d8", 0.25); say(st.r3c1, "30", 0.25); say(st.r3c2, "80", 0.25); say(st.r3c3, "5a", 0.25); }
+  par { fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+  say(cap, "Ciphertext", 0.2);
+  say(exp, "The state is read out column by column as the 16-byte ciphertext.", 0.2);
+}
+  recolor(st, fg, 0.25);
+wait(0.35);
+
+par { recolor(st, lime, 0.4); fade(sbox, 0.2); fade(rk, 0.2); fade(rklab, 0.2); }
+pulse(st, 0.8);
+text(done, (cx, h - 250), "ciphertext  69c4e0d86a7b0430d8cdb78070b4c55a");  size(done, 22); color(done, lime); hidden(done);
+show(done, 0.5);
+wait(1.6);

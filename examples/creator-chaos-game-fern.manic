@@ -1,0 +1,72 @@
+// Existing-Manic treatment of fractales/fig0050.asy.
+// It explains the chaos-game invariant without pretending to plot 200k points.
+
+title("The Chaos-Game Fern");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Math tagline=Randomness_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=lime secondary=cyan footer=compact cta=Animate_the_rule safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Make_Randomness_Explain_Itself cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080;
+text(kicker,(cx,h*0.10),"THE CHAOS GAME");
+text(head,(cx,h*0.17),"Four random choices. One fern.");
+text(question,(cx,h*0.24),"Why does the picture not become random noise?");
+text(caption,(cx,h*0.79),"Every choice moves the point into a smaller copy of the same final shape.");
+size(kicker,20*u); bold(kicker); color(kicker,lime);
+size(head,27*u); bold(head); wrap(head,w*0.76);
+size(question,20*u); bold(question); wrap(question,w*0.74); color(question,gold);
+size(caption,20*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+rect(card0,(cx-150*u,h*0.32),130*u,72*u); text(t0,(cx-150*u,h*0.32),"STEM\n1%");
+rect(card1,(cx+150*u,h*0.32),130*u,72*u); text(t1,(cx+150*u,h*0.32),"UP\n85%");
+rect(card2,(cx-85*u,h*0.39),130*u,72*u); text(t2,(cx-85*u,h*0.39),"LEFT\n7%");
+rect(card3,(cx+85*u,h*0.39),130*u,72*u); text(t3,(cx+85*u,h*0.39),"RIGHT\n7%");
+tag(card0,rules); tag(card1,rules); tag(card2,rules); tag(card3,rules);
+tag(t0,rules); tag(t1,rules); tag(t2,rules); tag(t3,rules);
+color(rules,cyan);
+untraced(card0); untraced(card1); untraced(card2); untraced(card3);
+hidden(t0); hidden(t1); hidden(t2); hidden(t3);
+
+def fern(k,x,y,ang,len,depth) {
+  if depth > 0 && len > 2 {
+    let x2=x+len*cos(ang); let y2=y-len*sin(ang);
+    line(f{k},(x,y),(x2,y2)); hue(f{k},105+depth*8); tag(f{k},fern);
+    fern(3*k,x2,y2,ang+0.06,len*0.82,depth-1);
+    fern(3*k+1,x2,y2,ang+0.88,len*0.40,depth-2);
+    fern(3*k+2,x2,y2,ang-0.88,len*0.40,depth-2);
+  }
+}
+fern(1,cx,h*0.68,1.5708,80*u,8);
+untraced(fern); hidden(kicker); hidden(head); hidden(question); hidden(caption);
+
+step("ask") { par { show(kicker,0.3); show(head,0.45); show(question,0.4); show(caption,0.35); } }
+wait(0.9);
+step("reveal the four choices") {
+  stagger(0.12) {
+    par { draw(card0,0.35,smooth); show(t0,0.25); }
+    par { draw(card1,0.35,smooth); show(t1,0.25); }
+    par { draw(card2,0.35,smooth); show(t2,0.25); }
+    par { draw(card3,0.35,smooth); show(t3,0.25); }
+  }
+  say(caption,"The choices are random, but every allowed move is a contraction.",0.4,smooth);
+}
+wait(0.85);
+step("show the invariant") {
+  par { fade(rules,0.35); draw(fern,3.0,smooth); say(caption,"Repeated contractions can only land on the shared invariant shape: the fern.",0.45,smooth); }
+}
+wait(0.95);
+step("explain the apparent paradox") {
+  par {
+    pulse(fern,0.85);
+    say(caption,"Randomness chooses the route, but the four contraction maps restrict every destination.",0.60,smooth);
+  }
+}
+wait(1.0);
+step("solve") {
+  par { say(head,"Random path. Deterministic destination.",0.45,smooth); pulse(fern,0.8); }
+}
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(question,0.3); fade(caption,0.3); fade(fern,0.4); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

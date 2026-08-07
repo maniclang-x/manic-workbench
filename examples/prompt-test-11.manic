@@ -1,0 +1,168 @@
+// Q7 — Shanti Sweets orders cardboard boxes in two sizes:
+//   big 25 x 20 x 5 cm, small 15 x 12 x 5 cm, 250 of each.
+//   +5% of surface area for overlaps; cardboard costs Rs 4 per 1000 cm².
+// Taught in 3D: both boxes as shaded cuboids with thick dimension arrows,
+// then the surface area is built with real products and scaled to the cost.
+// The working sits in one right-hand panel that swaps content per step, so
+// the screen never crowds.
+//
+//   manic examples/prompt-test-11.manic
+//   manic examples/prompt-test-11.manic --record out --fps 60
+
+title("3D Cardboard Box Cost");
+canvas("16:9");
+
+let px = cx + 305;   // right-hand working panel centre
+
+camera3((6, -9, 5), (1.7, 0, 0.5), 45, perspective);
+
+text(head, (cx, 48), "cardboard for two sizes of sweet box");
+display(head);  color(head, cyan);  size(head, 30);  hidden(head);
+
+text(cap, (cx, h - 40), "");
+display(cap);  color(cap, fg);  size(cap, 21);  hidden(cap);
+
+text(problem, (cx, 96), "250 boxes of each size, +5% extra for overlaps");
+display(problem);  color(problem, fg);  size(problem, 21);  hidden(problem);
+
+text(rate, (cx, 128), "cardboard costs Rs 4 per 1000 cm²");
+display(rate);  color(rate, lime);  size(rate, 21);  hidden(rate);
+
+grid3(floor, (0, 0, 0), 4, 1);
+color(floor, dim);  opacity(floor, 0.3);  hidden(floor);
+
+cube3(bigBox, (-1.65, 0, 0.25), (2.5, 2, 0.5));
+color(bigBox, cyan);  opacity(bigBox, 0.9);  hidden(bigBox);
+
+cube3(smallBox, (2.05, 0, 0.25), (1.5, 1.2, 0.5));
+color(smallBox, lime);  opacity(smallBox, 0.9);  hidden(smallBox);
+
+text(bigLabel, (0, 0), "big: 25 × 20 × 5");
+display(bigLabel);  color(bigLabel, cyan);  size(bigLabel, 19);  hidden(bigLabel);
+pin3(bigLabel, (-1.65, -1.5, 0.95));
+
+text(smallLabel, (0, 0), "small: 15 × 12 × 5");
+display(smallLabel);  color(smallLabel, lime);  size(smallLabel, 19);  hidden(smallLabel);
+pin3(smallLabel, (2.05, -1.1, 0.95));
+
+// --- dimension arrows (thick tubes) + labels for the big box ---
+arrow3(bigLen, (-2.9, -1.25, 0.05), (-0.4, -1.25, 0.05));
+arrow3(bigWid, (-3.1, -1, 0.05), (-3.1, 1, 0.05));
+arrow3(bigHei, (-0.3, 1.15, 0), (-0.3, 1.15, 0.5));
+color(bigLen, cyan);  color(bigWid, cyan);  color(bigHei, cyan);
+thick(bigLen, 0.03);  thick(bigWid, 0.03);  thick(bigHei, 0.03);
+untraced(bigLen);  untraced(bigWid);  untraced(bigHei);
+
+text(l25, (0, 0), "25");  display(l25); color(l25, cyan); size(l25, 18); hidden(l25);
+text(l20, (0, 0), "20");  display(l20); color(l20, cyan); size(l20, 18); hidden(l20);
+text(l5a, (0, 0), "5");   display(l5a); color(l5a, cyan); size(l5a, 18); hidden(l5a);
+pin3(l25, (-1.65, -1.55, 0.1));
+pin3(l20, (-3.35, 0, 0.1));
+pin3(l5a, (-0.1, 1.35, 0.28));
+
+// --- dimension arrows + labels for the small box ---
+arrow3(smallLen, (1.3, -0.85, 0.05), (2.8, -0.85, 0.05));
+arrow3(smallWid, (1.1, -0.6, 0.05), (1.1, 0.6, 0.05));
+arrow3(smallHei, (2.95, 0.75, 0), (2.95, 0.75, 0.5));
+color(smallLen, lime);  color(smallWid, lime);  color(smallHei, lime);
+thick(smallLen, 0.03);  thick(smallWid, 0.03);  thick(smallHei, 0.03);
+untraced(smallLen);  untraced(smallWid);  untraced(smallHei);
+
+text(l15, (0, 0), "15");  display(l15); color(l15, lime); size(l15, 18); hidden(l15);
+text(l12, (0, 0), "12");  display(l12); color(l12, lime); size(l12, 18); hidden(l12);
+text(l5b, (0, 0), "5");   display(l5b); color(l5b, lime); size(l5b, 18); hidden(l5b);
+pin3(l15, (2.05, -1.05, 0.1));
+pin3(l12, (0.85, 0, 0.1));
+pin3(l5b, (3.15, 0.9, 0.28));
+
+// --- working panel, step 1: surface area of each box (products in full) ---
+text(formula, (px, cy - 150), "TSA = 2(lb + bh + hl)");
+text(bigC1, (px, cy - 104), "big = 2(25×20 + 20×5 + 25×5)");
+text(bigC2, (px, cy - 70), "    = 2 × 725 = 1450 cm²");
+text(smallC1, (px, cy - 20), "small = 2(15×12 + 12×5 + 15×5)");
+text(smallC2, (px, cy + 14), "      = 2 × 315 = 630 cm²");
+display(formula); display(bigC1); display(bigC2); display(smallC1); display(smallC2);
+color(formula, fg); color(bigC1, cyan); color(bigC2, cyan); color(smallC1, lime); color(smallC2, lime);
+size(formula, 22); size(bigC1, 18); size(bigC2, 18); size(smallC1, 18); size(smallC2, 18);
+hidden(formula); hidden(bigC1); hidden(bigC2); hidden(smallC1); hidden(smallC2);
+tag(formula, tsa); tag(bigC1, tsa); tag(bigC2, tsa); tag(smallC1, tsa); tag(smallC2, tsa);
+
+// --- working panel, step 2: +5% overlap, ×250 boxes, then cost ---
+text(scaleNote, (px, cy - 150), "+5% overlap, then × 250 boxes");
+display(scaleNote); color(scaleNote, magenta); size(scaleNote, 19); hidden(scaleNote);
+
+table(tab, "box TSA +5% ×250; big 1450 1522.5 380625; small 630 661.5 165375", (px, cy - 62), 96, 40);
+hidden(tab.entries);  hidden(tab.hlines);  hidden(tab.vlines);
+color(tab.entries, fg);
+
+counter(totalArea, (px, cy + 42), 0, 0, "total = ", " cm²");
+display(totalArea);  color(totalArea, cyan);  size(totalArea, 22);  hidden(totalArea);
+
+text(costCalc, (px, cy + 82), "cost = (546000 / 1000) × Rs 4");
+display(costCalc);  color(costCalc, fg);  size(costCalc, 18);  hidden(costCalc);
+
+counter(cost, (px, cy + 128), 0, 0, "cost = Rs ", "");
+display(cost);  color(cost, lime);  size(cost, 30);  hidden(cost);
+
+text(answer, (cx - 120, h - 88), "total cardboard cost = Rs 2184");
+display(answer);  color(answer, magenta);  size(answer, 30);  hidden(answer);
+
+// ------------------------------ script ------------------------------
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "Shanti Sweets needs cardboard for two sizes of box.", 0.8);
+
+par {
+  show(problem, 0.4);  show(rate, 0.4);
+  show(floor, 0.5);    show(bigBox, 0.7);  show(smallBox, 0.7);
+}
+show(bigLabel, 0.3);  show(smallLabel, 0.3);
+say(cap, "The cardboard for each box is its total surface area.", 0.8);
+
+par {
+  orbit3(24, 24, 9, 2.0, smooth);
+  rotate3(bigBox, (0, 0, 10), 2.0, smooth);
+  rotate3(smallBox, (0, 0, -10), 2.0, smooth);
+}
+
+par {
+  draw(bigLen, 0.4);  draw(bigWid, 0.4);  draw(bigHei, 0.4);
+  show(l25, 0.25);    show(l20, 0.25);    show(l5a, 0.25);
+}
+say(cap, "The big box is 25 by 20 by 5 centimetres.", 0.7);
+
+par {
+  draw(smallLen, 0.4);  draw(smallWid, 0.4);  draw(smallHei, 0.4);
+  show(l15, 0.25);      show(l12, 0.25);      show(l5b, 0.25);
+}
+say(cap, "The small box is 15 by 12 by 5 centimetres.", 0.7);
+
+show(formula, 0.4);
+stagger(0.12) { show(bigC1, 0.3); show(bigC2, 0.3); }
+say(cap, "Big box: 2 times 725 gives 1450 square centimetres.", 0.8);
+stagger(0.12) { show(smallC1, 0.3); show(smallC2, 0.3); }
+say(cap, "Small box: 2 times 315 gives 630 square centimetres.", 0.8);
+
+// clear the surface-area working before the cost pipeline
+fade(tsa, 0.4);
+show(scaleNote, 0.35);
+par { flash(bigBox, cyan); flash(smallBox, lime); }
+say(cap, "Add 5 percent for overlaps, then multiply by 250 boxes of each.", 0.9);
+
+par { show(tab.hlines, 0.35); show(tab.vlines, 0.35); }
+show(tab.entries, 0.5);
+say(cap, "Big needs 380625 and small needs 165375 square centimetres.", 0.9);
+
+show(totalArea, 0.35);
+to(totalArea, value, 546000, 1.1, smooth);
+say(cap, "Together that is 546000 square centimetres of cardboard.", 0.8);
+
+show(costCalc, 0.35);
+show(cost, 0.35);
+to(cost, value, 2184, 1.2, smooth);
+say(cap, "At Rs 4 per 1000 cm², the cost works out to Rs 2184.", 0.9);
+
+show(answer, 0.5);
+pulse(answer, 0.7);
+par { flash(bigBox, cyan); flash(smallBox, lime); }
+wait(1.0);

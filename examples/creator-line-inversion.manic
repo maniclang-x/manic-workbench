@@ -1,0 +1,49 @@
+// Existing-Manic treatment of animations/fig0030.asy.
+// A line not through the inversion center becomes a circle through the center.
+
+title("Line Inversion");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Geometry tagline=Transformation_stories yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=magenta secondary=cyan footer=compact cta=See_the_mapping safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Animate_Geometry_Not_Keyframes cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080; let oy=h*0.48; let R=120*u;
+text(kicker,(cx,h*0.10),"UNIT-CIRCLE INVERSION");
+text(head,(cx,h*0.17),"Where does the line x = 2 go?");
+text(caption,(cx,h*0.79),"Every image point obeys OP · OP′ = 1.");
+equation(eq,(cx,h*0.72),`x=2\quad\longmapsto\quad(x-\tfrac14)^2+y^2=(\tfrac14)^2`,29*u);
+size(kicker,20*u); bold(kicker); color(kicker,magenta);
+size(head,27*u); bold(head); wrap(head,w*0.76);
+size(caption,20*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+circle(unit,(cx-R,oy),R); outlined(unit); outline(unit,cyan); color(unit,panel);
+dot(O,(cx-R,oy),8*u); color(O,gold);
+line(source,(cx+R,oy-1.45*R),(cx+R,oy+1.45*R)); color(source,magenta); stroke(source,4);
+invertpath(image,source,O,R,360); outline(image,lime); color(image,lime); stroke(image,4);
+untraced(unit); untraced(source); untraced(image); hidden(O); hidden(kicker); hidden(head); hidden(caption); hidden(eq);
+
+step("pose") { par { show(kicker,0.3); show(head,0.4); show(caption,0.35); draw(unit,0.65,smooth); show(O,0.2); draw(source,0.6,smooth); } }
+wait(0.85);
+step("map three points") { say(caption,"Points far away move near O; the midpoint (2,0) maps to (1/2,0).",0.45,smooth); }
+wait(0.9);
+step("follow the limiting point") {
+  par {
+    pulse(O,0.80);
+    say(caption,"As a source point runs to infinity, its image approaches O; that is why the image circle passes through O.",0.65,smooth);
+  }
+}
+wait(1.0);
+step("join the images") {
+  par { draw(image,0.75,smooth); fade(source,0.35); show(eq,0.45); say(caption,"Those image points lie on one circle through O.",0.4); }
+}
+wait(0.95);
+step("check the equation") {
+  say(caption,"Its center is (1/4, 0) and its radius is 1/4, so the origin lies exactly on the boundary.",0.60,smooth);
+}
+wait(0.95);
+step("solve") { par { pulse(image,0.75); say(head,"A straight line becomes a circle.",0.4,smooth); } }
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(caption,0.3); fade(eq,0.3); fade(unit,0.3); fade(O,0.3); fade(image,0.35); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

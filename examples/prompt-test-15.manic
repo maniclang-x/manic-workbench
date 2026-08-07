@@ -1,0 +1,325 @@
+title("2025 Grid Tiling Visual");
+canvas("16:9");
+
+let bigX = cx - 330;
+let bigY = cy + 35;
+let bigS = 250;
+
+let miniX = cx + 230;
+let miniY = cy + 55;
+let cell = 38;
+let n = 9;
+let left = miniX - 9cell/2;
+let top = miniY - 9cell/2;
+
+text(head, (cx, 55), "visualising the grid tiling question");
+display(head);
+color(head, cyan);
+size(head, 32);
+hidden(head);
+
+text(cap, (cx, h - 48), "");
+display(cap);
+color(cap, fg);
+size(cap, 21);
+hidden(cap);
+
+text(bigTitle, (bigX, 120), "actual board");
+display(bigTitle);
+color(bigTitle, cyan);
+size(bigTitle, 28);
+hidden(bigTitle);
+
+rect(bigBox, (bigX, bigY), bigS, bigS);
+outline(bigBox, cyan);
+stroke(bigBox, 4);
+untraced(bigBox);
+
+for i in 0..14 {
+line(bgv{i}, (bigX - bigS/2 + i*bigS/13, bigY - bigS/2), (bigX - bigS/2 + i*bigS/13, bigY + bigS/2));
+line(bgh{i}, (bigX - bigS/2, bigY - bigS/2 + i*bigS/13), (bigX + bigS/2, bigY - bigS/2 + i*bigS/13));
+color(bgv{i}, dim);
+color(bgh{i}, dim);
+stroke(bgv{i}, 1);
+stroke(bgh{i}, 1);
+opacity(bgv{i}, 0.55);
+opacity(bgh{i}, 0.55);
+untraced(bgv{i});
+untraced(bgh{i});
+tag(bgv{i}, bigGrid);
+tag(bgh{i}, bigGrid);
+}
+
+bracelabel(cols2025, (bigX - bigS/2, bigY + bigS/2 + 28), (bigX + bigS/2, bigY + bigS/2 + 28), "2025 columns", 18);
+bracelabel(rows2025, (bigX - bigS/2 - 28, bigY - bigS/2), (bigX - bigS/2 - 28, bigY + bigS/2), "2025 rows", 18);
+color(cols2025, lime);
+color(rows2025, lime);
+hidden(cols2025);
+hidden(rows2025);
+
+text(tileRule1, (bigX, bigY + 180), "tiles are rectangles");
+text(tileRule2, (bigX, bigY + 218), "sides lie on grid lines");
+text(tileRule3, (bigX, bigY + 256), "no unit square is covered twice");
+display(tileRule1);
+display(tileRule2);
+display(tileRule3);
+color(tileRule1, fg);
+color(tileRule2, fg);
+color(tileRule3, magenta);
+size(tileRule1, 21);
+size(tileRule2, 21);
+size(tileRule3, 21);
+hidden(tileRule1);
+hidden(tileRule2);
+hidden(tileRule3);
+
+text(miniTitle, (miniX, 120), "small picture of the rule");
+display(miniTitle);
+color(miniTitle, cyan);
+size(miniTitle, 28);
+hidden(miniTitle);
+
+rect(miniFrame, (miniX, miniY), 9cell, 9cell);
+outline(miniFrame, fg);
+stroke(miniFrame, 3);
+untraced(miniFrame);
+
+for i in 0..10 {
+line(mgv{i}, (left + i*cell, top), (left + i*cell, top + 9cell));
+line(mgh{i}, (left, top + i*cell), (left + 9cell, top + i*cell));
+color(mgv{i}, dim);
+color(mgh{i}, dim);
+stroke(mgv{i}, 1);
+stroke(mgh{i}, 1);
+untraced(mgv{i});
+untraced(mgh{i});
+tag(mgv{i}, miniGrid);
+tag(mgh{i}, miniGrid);
+}
+
+rect(tile1, (left + (0 + 2/2)cell, top + (0 + 2/2)cell), 2cell, 2cell);
+rect(tile2, (left + (3 + 6/2)*cell, top + (0 + 1/2)cell), 6cell, cell);
+rect(tile3, (left + (5 + 2/2)cell, top + (1 + 2/2)cell), 2cell, 2cell);
+rect(tile4, (left + (2 + 2/2)cell, top + (2 + 3/2)cell), 2cell, 3cell);
+rect(tile5, (left + (4 + 2/2)cell, top + (3 + 3/2)cell), 2cell, 3cell);
+rect(tile6, (left + (6 + 2/2)cell, top + (5 + 3/2)cell), 2cell, 3cell);
+rect(tile7, (left + (0 + 3/2)cell, top + (6 + 3/2)cell), 3cell, 3cell);
+rect(tile8, (left + (4 + 1/2)*cell, top + (7 + 2/2)cell), cell, 2cell);
+
+filled(tile1);
+filled(tile2);
+filled(tile3);
+filled(tile4);
+filled(tile5);
+filled(tile6);
+filled(tile7);
+filled(tile8);
+color(tile1, cyan);
+color(tile2, gold);
+color(tile3, lime);
+color(tile4, cyan);
+color(tile5, gold);
+color(tile6, lime);
+color(tile7, cyan);
+color(tile8, gold);
+opacity(tile1, 0.35);
+opacity(tile2, 0.35);
+opacity(tile3, 0.35);
+opacity(tile4, 0.35);
+opacity(tile5, 0.35);
+opacity(tile6, 0.35);
+opacity(tile7, 0.35);
+opacity(tile8, 0.35);
+hidden(tile1);
+hidden(tile2);
+hidden(tile3);
+hidden(tile4);
+hidden(tile5);
+hidden(tile6);
+hidden(tile7);
+hidden(tile8);
+tag(tile1, tiles);
+tag(tile2, tiles);
+tag(tile3, tiles);
+tag(tile4, tiles);
+tag(tile5, tiles);
+tag(tile6, tiles);
+tag(tile7, tiles);
+tag(tile8, tiles);
+
+rect(hole0, (left + 2.5cell, top + 0.5cell), 0.72cell, 0.72cell);
+rect(hole1, (left + 7.5cell, top + 1.5cell), 0.72cell, 0.72cell);
+rect(hole2, (left + 4.5cell, top + 2.5cell), 0.72cell, 0.72cell);
+rect(hole3, (left + 0.5cell, top + 3.5cell), 0.72cell, 0.72cell);
+rect(hole4, (left + 6.5cell, top + 4.5cell), 0.72cell, 0.72cell);
+rect(hole5, (left + 1.5cell, top + 5.5cell), 0.72cell, 0.72cell);
+rect(hole6, (left + 8.5cell, top + 6.5cell), 0.72cell, 0.72cell);
+rect(hole7, (left + 3.5cell, top + 7.5cell), 0.72cell, 0.72cell);
+rect(hole8, (left + 5.5cell, top + 8.5cell), 0.72cell, 0.72cell);
+
+filled(hole0);
+filled(hole1);
+filled(hole2);
+filled(hole3);
+filled(hole4);
+filled(hole5);
+filled(hole6);
+filled(hole7);
+filled(hole8);
+color(hole0, magenta);
+color(hole1, magenta);
+color(hole2, magenta);
+color(hole3, magenta);
+color(hole4, magenta);
+color(hole5, magenta);
+color(hole6, magenta);
+color(hole7, magenta);
+color(hole8, magenta);
+opacity(hole0, 0.7);
+opacity(hole1, 0.7);
+opacity(hole2, 0.7);
+opacity(hole3, 0.7);
+opacity(hole4, 0.7);
+opacity(hole5, 0.7);
+opacity(hole6, 0.7);
+opacity(hole7, 0.7);
+opacity(hole8, 0.7);
+hidden(hole0);
+hidden(hole1);
+hidden(hole2);
+hidden(hole3);
+hidden(hole4);
+hidden(hole5);
+hidden(hole6);
+hidden(hole7);
+hidden(hole8);
+tag(hole0, holes);
+tag(hole1, holes);
+tag(hole2, holes);
+tag(hole3, holes);
+tag(hole4, holes);
+tag(hole5, holes);
+tag(hole6, holes);
+tag(hole7, holes);
+tag(hole8, holes);
+
+rect(rowBand, (miniX, top + 2.5cell), 9cell, cell);
+filled(rowBand);
+color(rowBand, magenta);
+opacity(rowBand, 0.18);
+hidden(rowBand);
+
+rect(colBand, (left + 4.5cell, miniY), cell, 9cell);
+filled(colBand);
+color(colBand, cyan);
+opacity(colBand, 0.18);
+hidden(colBand);
+
+arrow(rowArrow, (miniX + 250, top + 2.5cell), (left + 4.5cell + 18, top + 2.5cell));
+arrow(colArrow, (left + 4.5cell, miniY - 250), (left + 4.5cell, top + 2.5cell - 18));
+color(rowArrow, magenta);
+color(colArrow, cyan);
+stroke(rowArrow, 4);
+stroke(colArrow, 4);
+untraced(rowArrow);
+untraced(colArrow);
+
+text(rowText, (miniX + 300, top + 2.5cell), "one uncovered square in this row");
+text(colText, (left + 4.5cell, miniY - 285), "one uncovered square in this column");
+display(rowText);
+display(colText);
+color(rowText, magenta);
+color(colText, cyan);
+size(rowText, 18);
+size(colText, 18);
+hidden(rowText);
+hidden(colText);
+
+text(goal1, (cx, h - 125), "Question: what is the minimum number of rectangular tiles needed?");
+text(goal2, (cx, h - 88), "Condition: every row and every column has exactly one uncovered unit square.");
+display(goal1);
+display(goal2);
+color(goal1, cyan);
+color(goal2, lime);
+size(goal1, 25);
+size(goal2, 23);
+hidden(goal1);
+hidden(goal2);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "This file visualises the statement only, not the solution.", 0.8);
+
+show(bigTitle, 0.35);
+par {
+draw(bigBox, 0.6);
+draw(bigGrid, 0.8);
+}
+par {
+show(cols2025, 0.35);
+show(rows2025, 0.35);
+}
+say(cap, "The real board has 2025 rows and 2025 columns of unit squares.", 0.8);
+
+stagger(0.12) {
+show(tileRule1, 0.25);
+show(tileRule2, 0.25);
+show(tileRule3, 0.25);
+}
+say(cap, "Rectangular tiles must align with grid lines, and tiles may not overlap.", 0.8);
+
+show(miniTitle, 0.35);
+par {
+draw(miniFrame, 0.5);
+draw(miniGrid, 0.7);
+}
+say(cap, "On the right is a tiny model showing the same kind of rule.", 0.8);
+
+stagger(0.08) {
+show(tile1, 0.25);
+show(tile2, 0.25);
+show(tile3, 0.25);
+show(tile4, 0.25);
+show(tile5, 0.25);
+show(tile6, 0.25);
+show(tile7, 0.25);
+show(tile8, 0.25);
+}
+say(cap, "Colored rectangles represent possible tiles placed on grid squares.", 0.8);
+
+stagger(0.06) {
+show(hole0, 0.18);
+show(hole1, 0.18);
+show(hole2, 0.18);
+show(hole3, 0.18);
+show(hole4, 0.18);
+show(hole5, 0.18);
+show(hole6, 0.18);
+show(hole7, 0.18);
+show(hole8, 0.18);
+}
+say(cap, "Magenta squares represent unit squares left uncovered.", 0.8);
+
+par {
+show(rowBand, 0.35);
+draw(rowArrow, 0.4);
+show(rowText, 0.35);
+flash(hole2, magenta);
+}
+say(cap, "Each row must contain exactly one uncovered unit square.", 0.8);
+
+par {
+show(colBand, 0.35);
+draw(colArrow, 0.4);
+show(colText, 0.35);
+flash(hole2, cyan);
+}
+say(cap, "Each column must also contain exactly one uncovered unit square.", 0.8);
+
+par {
+show(goal1, 0.4);
+show(goal2, 0.4);
+}
+pulse(goal1, 0.7);
+say(cap, "The task is to determine the minimum number of tiles.", 0.8);
+wait(1.0);

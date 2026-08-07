@@ -1,0 +1,72 @@
+// Existing-Manic treatment of fractales/fig0040.asy.
+// Problem: how can one stem become a fern? Solution: reuse one recursive rule.
+
+title("One Rule Grows a Fern");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Generative tagline=Rules_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=cyan secondary=lime footer=compact cta=Grow_your_own safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Turn_Rules_Into_Stories cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080;
+text(kicker,(cx,h*0.11),"MANIC · RECURSIVE GEOMETRY");
+text(head,(cx,h*0.17),"How can one stem grow a fern?");
+text(caption,(cx,h*0.79),"Start with one segment. At every tip, keep growing and add two leaves.");
+text(rule,(cx,h*0.72),"stem → stem + left leaf + right leaf");
+size(kicker,20*u); bold(kicker); color(kicker,cyan);
+size(head,27*u); bold(head); wrap(head,w*0.76);
+size(caption,20*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+size(rule,21*u); bold(rule); wrap(rule,w*0.76); color(rule,gold);
+
+def fern(k,x,y,ang,len,depth) {
+  if depth > 0 && len > 3 {
+    let x2=x+len*cos(ang);
+    let y2=y-len*sin(ang);
+    line(stem{k},(x,y),(x2,y2));
+    stroke(stem{k},1+depth*0.34);
+    hue(stem{k},118+depth*7);
+    tag(stem{k},fernAll);
+    fern(3*k,x2,y2,ang+0.08,len*0.83,depth-1);
+    fern(3*k+1,x2,y2,ang+0.92,len*0.43,depth-2);
+    fern(3*k+2,x2,y2,ang-0.92,len*0.43,depth-2);
+  }
+}
+
+fern(1,cx,h*0.67,1.5708,112*u,9);
+untraced(fernAll); hidden(kicker); hidden(head); hidden(rule); hidden(caption);
+
+step("pose the problem") {
+  par { show(kicker,0.35); show(head,0.45); show(rule,0.45); show(caption,0.40); }
+}
+wait(0.85);
+step("grow the recursive solution") {
+  par {
+    draw(fernAll,3.2,smooth);
+    say(caption,"Each new segment is smaller and slightly turned, so the same rule creates organic detail.",0.45,smooth);
+  }
+}
+wait(0.95);
+step("read the repeated structure") {
+  par {
+    pulse(fernAll,0.90);
+    say(caption,"Zoom in anywhere: a branch resembles the whole fern because every generation reuses the same three choices.",0.60,smooth);
+  }
+}
+wait(1.0);
+step("connect rule to shape") {
+  say(rule,"shorter length + limited turning → a bounded self-similar fern",0.60,smooth);
+}
+wait(0.9);
+step("answer") {
+  par {
+    say(head,"One local rule creates the whole fern.",0.45,smooth);
+    say(caption,"Recursion supplies complexity; Manic keeps the story readable.",0.40,smooth);
+    pulse(fernAll,0.85);
+  }
+}
+wait(1.25);
+step("cta") {
+  par { fade(kicker,0.3); fade(head,0.3); fade(rule,0.3); fade(caption,0.3); fade(fernAll,0.45); fade(me.footer,0.3); show(me.endcard,0.6); }
+}
+wait(2.2);

@@ -1,0 +1,56 @@
+// inscribed-angle-short — 9:16 quiz Short (~23s): the inscribed angle theorem.
+// Central angle 140° in gold, mystery inscribed angle in cyan; the half-rule
+// answer stamps in at the reveal.
+title("The Inscribed Angle Rule");
+canvas("9:16");
+template("black");
+
+creator(me, "@anish2good name=Science_Lab yt=zarigatongy x=@anish2good web=8gwifi.org/manic footer=social accent=cyan");
+
+quiz(q, `Central angle $\angle AOB = 140^\circ$. What is the inscribed angle at $C$?`, "layout=media-first");
+option(q, "40°");
+option(q, "70°", correct);
+option(q, "100°");
+option(q, "140°");
+timing(q, "ask=4 options=4 think=8 reveal=3 hold=4");
+explain(q, `The inscribed angle is always HALF its central angle: $140^\circ \div 2 = 70^\circ$.`);
+
+// ---------- the figure ----------
+point(O, (cx, 900), "O"); size(O.label, 30); hidden(O);
+point(A, (cx + 174, 837), "A"); size(A.label, 34); hidden(A);
+point(B, (cx - 174, 837), "B"); size(B.label, 34); hidden(B);
+point(C, (cx, 1085), "C"); size(C.label, 34); hidden(C);
+circle2(circ, O, A); outlined(circ); stroke(circ, 3); untraced(circ);
+segment(oa, O, A); stroke(oa, 4); color(oa, gold); untraced(oa);
+segment(ob, O, B); stroke(ob, 4); color(ob, gold); untraced(ob);
+segment(ca, C, A); stroke(ca, 4); color(ca, cyan); untraced(ca);
+segment(cb, C, B); stroke(cb, 4); color(cb, cyan); untraced(cb);
+anglemark(mo, A, O, B); color(mo, gold); hidden(mo);
+anglemark(mi, A, C, B); color(mi, cyan); hidden(mi);
+text(l140, (cx, 830), "140°"); size(l140, 32); color(l140, gold); hidden(l140);
+text(l70, (cx, 1038), "70°"); size(l70, 32); color(l70, cyan); hidden(l70);
+
+socials(me);
+
+// ================= timeline =================
+par {
+  run(q);
+  seq {
+    wait(0.8);
+    show(O, 0.4);
+    draw(circ, 1.2);
+    par { show(A, 0.4); show(B, 0.4); }
+    par { draw(oa, 0.8); draw(ob, 0.8); }
+    par { show(mo, 0.4); show(l140, 0.4); }
+    show(C, 0.4);
+    par { draw(ca, 0.9); draw(cb, 0.9); }
+    show(mi, 0.4);
+    pulse(mi, 0.8);
+    // hold through the countdown; the answer stamps in at the reveal (t = 16s)
+    wait(8.1);
+    show(l70, 0.4);
+    flash(mi, cyan);
+    cue(pop);
+  }
+}
+wait(0.5);

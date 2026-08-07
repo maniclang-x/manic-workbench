@@ -1,0 +1,51 @@
+// Existing-Manic treatment of animations/fig0180.asy.
+// Solve one precise real-line-to-circle correspondence using ordinary geometry.
+
+title("Wrapping the Real Line");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Trigonometry tagline=Angles_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=cyan secondary=magenta footer=compact cta=Wrap_an_angle safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Make_Trig_Move cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080; let ox=cx; let oy=h*0.48; let R=170*u;
+text(kicker,(cx,h*0.10),"REAL LINE → UNIT CIRCLE");
+text(head,(cx,h*0.17),"Where does 3π/2 land?");
+text(caption,(cx,h*0.80),"Arc length t on a unit circle is also the angle t radians.");
+equation(eq,(cx,h*0.73),`t\mapsto(\cos t,\sin t)`,34*u);
+size(kicker,20*u); bold(kicker); color(kicker,cyan);
+size(head,27*u); bold(head); wrap(head,w*0.76);
+size(caption,19*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+circle(unit,(ox,oy),R); outlined(unit); outline(unit,cyan); color(unit,panel); stroke(unit,4);
+line(xaxis,(ox-R-35*u,oy),(ox+R+35*u,oy)); line(yaxis,(ox,oy-R-35*u),(ox,oy+R+35*u)); color(xaxis,dim); color(yaxis,dim);
+arc(path,(ox,oy),R,0,-270); color(path,magenta); stroke(path,7);
+dot(start,(ox+R,oy),9*u); dot(target,(ox,oy+R),12*u); color(start,gold); color(target,magenta);
+text(zero,(ox+R+32*u,oy),"0"); text(labelT,(ox,oy+R+35*u),"3π/2");
+untraced(unit); untraced(xaxis); untraced(yaxis); untraced(path);
+hidden(start); hidden(target); hidden(zero); hidden(labelT);
+hidden(kicker); hidden(head); hidden(caption); hidden(eq);
+
+step("pose") {
+  par { show(kicker,0.3); show(head,0.4); show(caption,0.35); }
+  seq { par { draw(xaxis,0.45,smooth); draw(yaxis,0.45,smooth); } draw(unit,0.85,smooth); par { show(start,0.2); show(zero,0.2); } }
+}
+wait(0.85);
+step("wrap the length") { par { draw(path,1.8,smooth); show(eq,0.45); say(caption,"Starting at (1,0), travel counterclockwise through three quarter-turns.",0.45); } }
+wait(0.9);
+step("connect distance and angle") {
+  par {
+    pulse(path,0.85);
+    say(caption,"On a unit circle, distance travelled equals angle in radians: t units of arc means t radians of rotation.",0.65,smooth);
+  }
+}
+wait(1.0);
+step("use periodicity") {
+  say(caption,"Adding any multiple of 2π reaches the same point, so the real line wraps around the circle repeatedly.",0.60,smooth);
+}
+wait(0.95);
+step("solve") { par { show(target,0.25); show(labelT,0.25); rewrite(eq,`(\cos\tfrac{3\pi}{2},\sin\tfrac{3\pi}{2})=(0,-1)`,0.8,smooth); pulse(target,0.7); say(head,"It lands at (0, −1).",0.4,smooth); } }
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(caption,0.3); fade(eq,0.3); fade(unit,0.3); fade(xaxis,0.3); fade(yaxis,0.3); fade(path,0.3); fade(start,0.3); fade(target,0.3); fade(zero,0.3); fade(labelT,0.3); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

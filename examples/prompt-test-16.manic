@@ -1,0 +1,252 @@
+title("Derivative Of ln(x)");
+canvas("16:9");
+
+let gx = cx - 315;
+let gy = cy + 220;
+let sx = 78;
+let sy = 95;
+
+let lx = cx + 260;
+let ly = cy + 220;
+let lsx = 72;
+let lsy = 92;
+
+let n = 8;
+let dx = 2/n;
+
+text(head, (cx, 55), "why derivative of ln(x) is 1/x");
+display(head);
+color(head, cyan);
+size(head, 34);
+hidden(head);
+
+text(cap, (cx, h - 50), "");
+display(cap);
+color(cap, fg);
+size(cap, 21);
+hidden(cap);
+
+text(defn, (gx, 112), "ln(x) = area under y = 1/t from 1 to x");
+display(defn);
+color(defn, lime);
+size(defn, 23);
+hidden(defn);
+
+axes(axArea, (gx, gy), 330, 245, 78);
+color(axArea, dim);
+stroke(axArea, 2);
+untraced(axArea);
+
+plot(recip, (gx, gy), sx, sy, "1/x", (0.35, 4.6));
+color(recip, lime);
+stroke(recip, 4);
+glow(recip, 7);
+untraced(recip);
+
+text(recipLab, (gx + 210, gy - 150), "y = 1/t");
+display(recipLab);
+color(recipLab, lime);
+size(recipLab, 23);
+hidden(recipLab);
+
+text(oneLab, (gx + sx, gy + 26), "1");
+text(xLab, (gx + 3*sx, gy + 26), "x");
+display(oneLab);
+display(xLab);
+color(oneLab, fg);
+color(xLab, cyan);
+size(oneLab, 20);
+size(xLab, 22);
+hidden(oneLab);
+hidden(xLab);
+
+line(xMark, (gx + 3sx, gy), (gx + 3sx, gy - sy/3));
+color(xMark, cyan);
+stroke(xMark, 4);
+untraced(xMark);
+
+for i in 0..n {
+let xleft = 1 + i*dx;
+let xmid = xleft + dx/2;
+let hgt = 1/xmid;
+rect(area{i}, (gx + xmid*sx, gy - hgt*sy/2), dx*sx, hgt*sy);
+filled(area{i});
+color(area{i}, cyan);
+opacity(area{i}, 0.28);
+outline(area{i}, cyan);
+stroke(area{i}, 1);
+z(area{i}, -1);
+hidden(area{i});
+tag(area{i}, areaPieces);
+}
+
+rect(extraSlice, (gx + 3.225sx, gy - sy/6), 0.45sx, sy/3);
+filled(extraSlice);
+color(extraSlice, magenta);
+opacity(extraSlice, 0.45);
+outline(extraSlice, magenta);
+stroke(extraSlice, 2);
+z(extraSlice, -1);
+hidden(extraSlice);
+
+line(dxLeft, (gx + 3sx, gy), (gx + 3sx, gy - sy/3));
+line(dxRight, (gx + 3.45sx, gy), (gx + 3.45sx, gy - sy/3));
+color(dxLeft, magenta);
+color(dxRight, magenta);
+stroke(dxLeft, 3);
+stroke(dxRight, 3);
+untraced(dxLeft);
+untraced(dxRight);
+
+bracelabel(dxBrace, (gx + 3sx, gy + 48), (gx + 3.45sx, gy + 48), "dx", 16);
+color(dxBrace, magenta);
+hidden(dxBrace);
+
+bracelabel(heightBrace, (gx + 3.55sx, gy), (gx + 3.55sx, gy - sy/3), "1/x", 16);
+color(heightBrace, lime);
+hidden(heightBrace);
+
+text(areaChange, (gx, gy - 235), "tiny added area ≈ width * height");
+text(areaChange2, (gx, gy - 200), "change in ln(x) ≈ dx * 1/x");
+display(areaChange);
+display(areaChange2);
+color(areaChange, fg);
+color(areaChange2, magenta);
+size(areaChange, 22);
+size(areaChange2, 24);
+hidden(areaChange);
+hidden(areaChange2);
+
+axes(axLn, (lx, ly), 285, 245, 72);
+color(axLn, dim);
+stroke(axLn, 2);
+untraced(axLn);
+
+plot(lnCurve, (lx, ly), lsx, lsy, "ln(x)", (0.3, 5));
+color(lnCurve, cyan);
+stroke(lnCurve, 4);
+glow(lnCurve, 7);
+untraced(lnCurve);
+
+text(lnLab, (lx + 160, ly - 125), "y = ln(x)");
+display(lnLab);
+color(lnLab, cyan);
+size(lnLab, 23);
+hidden(lnLab);
+
+dot(pointX, (lx + 3lsx, ly - 1.1lsy), 7);
+color(pointX, magenta);
+glow(pointX, 8);
+hidden(pointX);
+
+line(tangentLn, (lx + 1.6lsx, ly - 0.633lsy), (lx + 4.4lsx, ly - 1.567lsy));
+color(tangentLn, gold);
+stroke(tangentLn, 4);
+glow(tangentLn, 6);
+untraced(tangentLn);
+
+text(tanLab, (lx + 165, ly - 185), "slope at x is 1/x");
+display(tanLab);
+color(tanLab, gold);
+size(tanLab, 23);
+hidden(tanLab);
+
+text(steps0, (lx, 118), "Derivative means:");
+text(steps1, (lx, 160), "rate of change of area");
+text(steps2, (lx, 202), "= added area / dx");
+text(steps3, (lx, 244), "≈ (dx * 1/x) / dx");
+text(steps4, (lx, 286), "= 1/x");
+display(steps0);
+display(steps1);
+display(steps2);
+display(steps3);
+display(steps4);
+color(steps0, cyan);
+color(steps1, fg);
+color(steps2, fg);
+color(steps3, magenta);
+color(steps4, lime);
+size(steps0, 25);
+size(steps1, 22);
+size(steps2, 22);
+size(steps3, 22);
+size(steps4, 31);
+hidden(steps0);
+hidden(steps1);
+hidden(steps2);
+hidden(steps3);
+hidden(steps4);
+
+text(finalEq, (cx, h - 105), "therefore d/dx ln(x) = 1/x");
+display(finalEq);
+color(finalEq, lime);
+size(finalEq, 34);
+hidden(finalEq);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "Think of ln(x) as an area function.", 0.7);
+
+show(defn, 0.45);
+par {
+draw(axArea, 0.7);
+draw(recip, 0.9);
+show(recipLab, 0.35);
+show(oneLab, 0.3);
+show(xLab, 0.3);
+}
+say(cap, "The value ln(x) is the area under y equals 1 over t, from 1 to x.", 0.9);
+
+stagger(0.04) {
+for i in 0..n {
+show(area{i}, 0.18);
+}
+}
+draw(xMark, 0.4);
+flash(areaPieces, cyan);
+say(cap, "The shaded region represents ln(x).", 0.7);
+
+par {
+show(extraSlice, 0.45);
+draw(dxLeft, 0.35);
+draw(dxRight, 0.35);
+show(dxBrace, 0.35);
+show(heightBrace, 0.35);
+}
+say(cap, "Now increase x by a tiny amount dx.", 0.8);
+
+stagger(0.12) {
+show(areaChange, 0.3);
+show(areaChange2, 0.3);
+}
+say(cap, "The new thin slice has width dx and height about 1/x.", 0.9);
+
+par {
+draw(axLn, 0.7);
+draw(lnCurve, 0.9);
+show(lnLab, 0.35);
+}
+show(pointX, 0.35);
+draw(tangentLn, 0.55);
+show(tanLab, 0.35);
+say(cap, "On the ln graph, that rate becomes the tangent slope.", 0.8);
+
+stagger(0.14) {
+show(steps0, 0.3);
+show(steps1, 0.3);
+show(steps2, 0.3);
+show(steps3, 0.3);
+show(steps4, 0.35);
+}
+pulse(steps4, 0.6);
+say(cap, "Divide the tiny area change by dx, and only the height remains.", 0.9);
+
+show(finalEq, 0.5);
+pulse(finalEq, 0.7);
+par {
+flash(extraSlice, magenta);
+flash(tangentLn, gold);
+flash(recip, lime);
+}
+say(cap, "So the derivative of ln(x) is 1 over x.", 0.8);
+wait(1.0);

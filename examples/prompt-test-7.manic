@@ -1,0 +1,156 @@
+title("Halving Pizza Circle");
+canvas("16:9");
+
+let r = 220;
+let n = 16;
+
+text(head, (cx, 65), "keep halving the circle");
+display(head);
+color(head, cyan);
+size(head, 34);
+hidden(head);
+
+text(cap, (cx, h - 55), "");
+display(cap);
+color(cap, fg);
+size(cap, 22);
+hidden(cap);
+
+circle(pizza, (cx, cy), r);
+color(pizza, lime);
+stroke(pizza, 4);
+glow(pizza, 7);
+untraced(pizza);
+
+dot(center, (cx, cy), 6);
+color(center, magenta);
+hidden(center);
+
+for i in 0..n {
+sector(slice{i}, (cx, cy), r, tau*i/n, tau*(i+1)/n);
+filled(slice{i});
+hue(slice{i}, 360*i/n, 0.65, 0.55);
+opacity(slice{i}, 0.55);
+outline(slice{i}, fg);
+stroke(slice{i}, 2);
+hidden(slice{i});
+tag(slice{i}, slices);
+}
+
+line(half0, (cx - r, cy), (cx + r, cy));
+line(half1, (cx, cy - r), (cx, cy + r));
+line(half2, (cx - r*cos(pi/4), cy - r*sin(pi/4)), (cx + r*cos(pi/4), cy + r*sin(pi/4)));
+line(half3, (cx - r*cos(pi/4), cy + r*sin(pi/4)), (cx + r*cos(pi/4), cy - r*sin(pi/4)));
+color(half0, fg);
+color(half1, fg);
+color(half2, fg);
+color(half3, fg);
+stroke(half0, 4);
+stroke(half1, 4);
+stroke(half2, 4);
+stroke(half3, 4);
+untraced(half0);
+untraced(half1);
+untraced(half2);
+untraced(half3);
+
+for i in 0..n {
+line(cut{i}, (cx, cy), (cx + r*cos(tau*i/n), cy + r*sin(tau*i/n)));
+color(cut{i}, fg);
+stroke(cut{i}, 2);
+untraced(cut{i});
+tag(cut{i}, finecuts);
+}
+
+text(step1, (cx - 430, 150), "1 cut: 2 halves");
+text(step2, (cx - 430, 195), "2 cuts: 4 quarters");
+text(step3, (cx - 430, 240), "4 cuts: 8 slices");
+text(step4, (cx - 430, 285), "8 cuts: 16 thin slices");
+display(step1);
+display(step2);
+display(step3);
+display(step4);
+color(step1, fg);
+color(step2, fg);
+color(step3, fg);
+color(step4, lime);
+size(step1, 23);
+size(step2, 23);
+size(step3, 23);
+size(step4, 23);
+hidden(step1);
+hidden(step2);
+hidden(step3);
+hidden(step4);
+
+text(done, (cx, cy), "all slices out");
+display(done);
+color(done, magenta);
+size(done, 34);
+hidden(done);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "Start with one whole circle.", 0.6);
+
+par {
+draw(pizza, 0.8);
+show(center, 0.4);
+}
+say(cap, "Now keep halving it like pizza.", 0.7);
+
+draw(half0, 0.5);
+show(step1, 0.3);
+say(cap, "One cut makes two halves.", 0.6);
+
+draw(half1, 0.5);
+show(step2, 0.3);
+say(cap, "Cut again: four quarters.", 0.6);
+
+par {
+draw(half2, 0.5);
+draw(half3, 0.5);
+}
+show(step3, 0.3);
+say(cap, "Cut the quarters in half: eight slices.", 0.6);
+
+stagger(0.035) {
+for i in 0..n {
+draw(cut{i}, 0.18);
+}
+}
+show(step4, 0.3);
+say(cap, "Keep halving until there are sixteen thin slices.", 0.7);
+
+par {
+fade(pizza, 0.4);
+fade(half0, 0.4);
+fade(half1, 0.4);
+fade(half2, 0.4);
+fade(half3, 0.4);
+fade(finecuts, 0.4);
+}
+
+stagger(0.035) {
+for i in 0..n {
+show(slice{i}, 0.16);
+}
+}
+say(cap, "Now take the slices out one by one.", 0.7);
+
+stagger(0.12) {
+for i in 0..n {
+shift(slice{i}, (110*cos(tau*(i+0.5)/n), 110*sin(tau*(i+0.5)/n)), 0.45, smooth);
+}
+}
+
+stagger(0.08) {
+for i in 0..n {
+fade(slice{i}, 0.25);
+}
+}
+
+show(done, 0.5);
+pulse(done, 0.7);
+say(cap, "The circle was halved again and again, then every slice was removed.", 0.8);
+wait(1.0);

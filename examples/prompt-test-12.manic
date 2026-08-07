@@ -1,0 +1,177 @@
+// Q6 — A closed glass herbarium (greenhouse), 30 x 25 x 25 cm.
+//   (i)  area of glass  = total surface area = 2(lw + wh + lh)
+//   (ii) tape for 12 edges = 4(l + w + h)
+// Taught in 3D: the glass box is translucent, each of the 3 face-pairs lights
+// up as its term is added, and all 12 edges are traced as gold tape.
+//
+//   manic examples/prompt-test-12.manic
+//   manic examples/prompt-test-12.manic --record out --fps 60
+
+title("3D Herbarium — Glass & Tape");
+canvas("16:9");
+
+camera3((5.5, -7, 4.2), (0.6, 0, 1.2), 45, perspective);
+
+text(head, (cx, 50), "herbarium: glass area and tape length");
+display(head);  color(head, cyan);  size(head, 30);  hidden(head);
+
+text(cap, (cx, h - 42), "");
+display(cap);  color(cap, fg);  size(cap, 21);  hidden(cap);
+
+text(problem, (cx, 98), "a closed glass box, 30 cm x 25 cm x 25 cm");
+display(problem);  color(problem, lime);  size(problem, 22);  hidden(problem);
+
+grid3(floor, (0, 0, 0), 3.5, 0.5);
+color(floor, dim);  opacity(floor, 0.28);  hidden(floor);
+
+// the glass volume — faint so the highlighted panes read over it
+cube3(glassBox, (0, 0, 1.25), (3, 2.5, 2.5));
+color(glassBox, cyan);  opacity(glassBox, 0.14);  hidden(glassBox);
+
+// --- the 6 face panes, grouped into 3 pairs (thin cuboids on each face) ---
+cube3(paneTop,   (0, 0, 2.5),    (3, 2.5, 0.03));
+cube3(paneBase,  (0, 0, 0),      (3, 2.5, 0.03));
+cube3(paneFront, (0, -1.25, 1.25), (3, 0.03, 2.5));
+cube3(paneBack,  (0, 1.25, 1.25),  (3, 0.03, 2.5));
+cube3(paneLeft,  (-1.5, 0, 1.25),  (0.03, 2.5, 2.5));
+cube3(paneRight, (1.5, 0, 1.25),   (0.03, 2.5, 2.5));
+color(paneTop, cyan);     color(paneBase, cyan);
+color(paneFront, magenta);  color(paneBack, magenta);
+color(paneLeft, lime);    color(paneRight, lime);
+opacity(paneTop, 0.5);    opacity(paneBase, 0.5);
+opacity(paneFront, 0.5);  opacity(paneBack, 0.5);
+opacity(paneLeft, 0.5);   opacity(paneRight, 0.5);
+hidden(paneTop);   hidden(paneBase);
+hidden(paneFront); hidden(paneBack);
+hidden(paneLeft);  hidden(paneRight);
+tag(paneTop, panes);   tag(paneBase, panes);
+tag(paneFront, panes); tag(paneBack, panes);
+tag(paneLeft, panes);  tag(paneRight, panes);
+tag(paneTop, pairTB);  tag(paneBase, pairTB);
+tag(paneFront, pairFB); tag(paneBack, pairFB);
+tag(paneLeft, pairLR); tag(paneRight, pairLR);
+
+// --- the 12 edges (tape), thick gold tubes, drawn on in part (ii) ---
+line3(e1, (-1.5, -1.25, 0), (1.5, -1.25, 0));
+line3(e2, (1.5, -1.25, 0), (1.5, 1.25, 0));
+line3(e3, (1.5, 1.25, 0), (-1.5, 1.25, 0));
+line3(e4, (-1.5, 1.25, 0), (-1.5, -1.25, 0));
+line3(e5, (-1.5, -1.25, 2.5), (1.5, -1.25, 2.5));
+line3(e6, (1.5, -1.25, 2.5), (1.5, 1.25, 2.5));
+line3(e7, (1.5, 1.25, 2.5), (-1.5, 1.25, 2.5));
+line3(e8, (-1.5, 1.25, 2.5), (-1.5, -1.25, 2.5));
+line3(e9, (-1.5, -1.25, 0), (-1.5, -1.25, 2.5));
+line3(e10, (1.5, -1.25, 0), (1.5, -1.25, 2.5));
+line3(e11, (1.5, 1.25, 0), (1.5, 1.25, 2.5));
+line3(e12, (-1.5, 1.25, 0), (-1.5, 1.25, 2.5));
+color(e1, gold);  color(e2, gold);  color(e3, gold);  color(e4, gold);
+color(e5, gold);  color(e6, gold);  color(e7, gold);  color(e8, gold);
+color(e9, gold);  color(e10, gold); color(e11, gold); color(e12, gold);
+thick(e1, 0.04);  thick(e2, 0.04);  thick(e3, 0.04);  thick(e4, 0.04);
+thick(e5, 0.04);  thick(e6, 0.04);  thick(e7, 0.04);  thick(e8, 0.04);
+thick(e9, 0.04);  thick(e10, 0.04); thick(e11, 0.04); thick(e12, 0.04);
+untraced(e1);  untraced(e2);  untraced(e3);  untraced(e4);
+untraced(e5);  untraced(e6);  untraced(e7);  untraced(e8);
+untraced(e9);  untraced(e10); untraced(e11); untraced(e12);
+tag(e1, tape);  tag(e2, tape);  tag(e3, tape);  tag(e4, tape);
+tag(e5, tape);  tag(e6, tape);  tag(e7, tape);  tag(e8, tape);
+tag(e9, tape);  tag(e10, tape); tag(e11, tape); tag(e12, tape);
+
+// --- dimension arrows (white) with colour-coded labels ---
+arrow3(dimL, (-1.5, -1.65, 0), (1.5, -1.65, 0));
+arrow3(dimW, (1.8, -1.25, 0), (1.8, 1.25, 0));
+arrow3(dimH, (-1.7, -1.45, 0), (-1.7, -1.45, 2.5));
+color(dimL, fg);  color(dimW, fg);  color(dimH, fg);
+thick(dimL, 0.022);  thick(dimW, 0.022);  thick(dimH, 0.022);
+untraced(dimL);  untraced(dimW);  untraced(dimH);
+
+text(l30, (0, 0), "30");   display(l30);  color(l30, cyan);     size(l30, 19);  hidden(l30);
+text(l25w, (0, 0), "25");  display(l25w); color(l25w, lime);    size(l25w, 19); hidden(l25w);
+text(l25h, (0, 0), "25");  display(l25h); color(l25h, magenta); size(l25h, 19); hidden(l25h);
+pin3(l30, (0, -2.25, 0.02));
+pin3(l25w, (2.2, 0, 0.02));
+pin3(l25h, (-2.05, -1.6, 1.3));
+
+// --- right-hand working panel ---
+text(saTitle, (985, cy - 178), "(i) glass = surface area");
+text(saTop,   (985, cy - 132), "top + base:  2(30×25) = 1500");
+text(saFB,    (985, cy - 94),  "front + back: 2(30×25) = 1500");
+text(saLR,    (985, cy - 56),  "two sides:   2(25×25) = 1250");
+text(saSum,   (985, cy - 14),  "= 1500 + 1500 + 1250");
+display(saTitle); display(saTop); display(saFB); display(saLR); display(saSum);
+color(saTitle, cyan); color(saTop, cyan); color(saFB, magenta); color(saLR, lime); color(saSum, fg);
+size(saTitle, 23); size(saTop, 19); size(saFB, 19); size(saLR, 19); size(saSum, 20);
+hidden(saTitle); hidden(saTop); hidden(saFB); hidden(saLR); hidden(saSum);
+
+counter(areaCounter, (985, cy + 30), 0, 0, "glass = ", " cm²");
+display(areaCounter);  color(areaCounter, cyan);  size(areaCounter, 25);  hidden(areaCounter);
+
+text(tapeTitle, (985, cy + 100), "(ii) tape = all 12 edges");
+text(tapeF,     (985, cy + 143), "= 4(l + w + h)");
+text(tapeCalc,  (985, cy + 181), "= 4(30 + 25 + 25) = 4×80");
+display(tapeTitle); display(tapeF); display(tapeCalc);
+color(tapeTitle, gold); color(tapeF, fg); color(tapeCalc, fg);
+size(tapeTitle, 23); size(tapeF, 19); size(tapeCalc, 19);
+hidden(tapeTitle); hidden(tapeF); hidden(tapeCalc);
+
+counter(tapeCounter, (985, cy + 221), 0, 0, "tape = ", " cm");
+display(tapeCounter);  color(tapeCounter, gold);  size(tapeCounter, 25);  hidden(tapeCounter);
+
+text(answer, (cx, h - 92), "glass = 4250 cm²   ·   tape = 320 cm");
+display(answer);  color(answer, lime);  size(answer, 30);  hidden(answer);
+
+// ------------------------------ script ------------------------------
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "A herbarium is a closed box made entirely of glass — the base too.", 0.9);
+
+par { show(problem, 0.4); show(floor, 0.5); show(glassBox, 0.8); }
+say(cap, "Its dimensions are 30 by 25 by 25 centimetres.", 0.8);
+
+par {
+  draw(dimL, 0.5);  draw(dimW, 0.5);  draw(dimH, 0.5);
+  show(l30, 0.3);   show(l25w, 0.3);  show(l25h, 0.3);
+}
+orbit3(30, 22, 8.5, 2.2, smooth);
+say(cap, "Part 1 — the glass needed is the total surface area: all six faces.", 0.9);
+
+show(saTitle, 0.3);
+par { show(paneTop, 0.3); show(paneBase, 0.3); }
+flash(pairTB, cyan);
+show(saTop, 0.3);
+say(cap, "Top and base are each 30 by 25, so the pair is 1500.", 0.9);
+
+par { show(paneFront, 0.3); show(paneBack, 0.3); }
+flash(pairFB, magenta);
+show(saFB, 0.3);
+say(cap, "Front and back are also 30 by 25 — another 1500.", 0.8);
+
+par { show(paneLeft, 0.3); show(paneRight, 0.3); }
+flash(pairLR, lime);
+show(saLR, 0.3);
+say(cap, "The two sides are 25 by 25, adding 1250.", 0.8);
+
+show(saSum, 0.3);
+show(areaCounter, 0.3);
+to(areaCounter, value, 4250, 1.1, smooth);
+say(cap, "All six faces together need 4250 square centimetres of glass.", 0.9);
+
+fade(panes, 0.5);
+say(cap, "Part 2 — tape runs along every edge of the box.", 0.8);
+stagger(0.055) {
+  draw(e1, 0.18);  draw(e2, 0.18);  draw(e3, 0.18);  draw(e4, 0.18);
+  draw(e5, 0.18);  draw(e6, 0.18);  draw(e7, 0.18);  draw(e8, 0.18);
+  draw(e9, 0.18);  draw(e10, 0.18); draw(e11, 0.18); draw(e12, 0.18);
+}
+flash(tape, gold);
+
+show(tapeTitle, 0.3);
+stagger(0.1) { show(tapeF, 0.3); show(tapeCalc, 0.3); }
+show(tapeCounter, 0.3);
+to(tapeCounter, value, 320, 1.0, smooth);
+say(cap, "A cuboid has 4 lengths, 4 widths and 4 heights: 4 times 80 is 320 cm.", 1.0);
+
+show(answer, 0.5);
+pulse(answer, 0.7);
+par { flash(glassBox, cyan); flash(tape, gold); }
+wait(1.0);

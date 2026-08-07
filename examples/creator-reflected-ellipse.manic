@@ -1,0 +1,48 @@
+// Existing-Manic treatment of animations/fig0110.asy.
+// Solve a concrete reflection across x=c with two ordinary ellipses.
+
+title("Reflecting an Ellipse");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Geometry tagline=Conics_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=magenta secondary=cyan footer=compact cta=Reflect_the_conic safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Build_Visual_Proofs cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080; let yy=h*0.48; let mirrorX=cx;
+text(kicker,(cx,h*0.10),"REFLECTION · CONIC SECTIONS");
+text(head,(cx,h*0.17),"Reflect an ellipse across x = 0.");
+text(caption,(cx,h*0.79),"Reflection negates every x-coordinate and preserves every distance to the mirror.");
+equation(eq,(cx,h*0.72),`(x,y)\mapsto(-x,y)`,34*u);
+size(kicker,20*u); bold(kicker); color(kicker,magenta);
+size(head,27*u); bold(head); wrap(head,w*0.76);
+size(caption,19*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+line(mirror,(mirrorX,h*0.31),(mirrorX,h*0.65)); color(mirror,dim); dashed(mirror,12); stroke(mirror,3);
+ellipse(left,(cx-130*u,yy),105*u,62*u,-18); color(left,cyan); stroke(left,4); untraced(left);
+reflectpath(right,left,mirror,320); color(right,magenta); stroke(right,4); untraced(right);
+dot(C,(cx-130*u,yy),8*u); dot(Cp,(cx+130*u,yy),8*u); color(C,gold); color(Cp,gold);
+line(distance,(cx-130*u,yy),(cx+130*u,yy)); color(distance,gold); dashed(distance,10); untraced(distance);
+untraced(mirror); hidden(C); hidden(Cp); hidden(distance);
+hidden(kicker); hidden(head); hidden(caption); hidden(eq);
+
+step("pose") {
+  par { show(kicker,0.3); show(head,0.4); show(caption,0.35); }
+  seq { draw(mirror,0.55,smooth); draw(left,0.75,smooth); show(C,0.2); }
+}
+wait(0.85);
+step("reflect the center") { par { show(distance,0.45); show(Cp,0.25); show(eq,0.4); say(caption,"The center moves to the opposite side by the same perpendicular distance.",0.4); } }
+wait(0.85);
+step("reflect every boundary point") { par { draw(right,0.85,smooth); say(caption,"Applying the same map to the whole boundary produces the reflected ellipse.",0.45); } }
+wait(0.95);
+step("check what reflection preserves") {
+  par {
+    pulse(distance,0.80);
+    say(caption,"Every point keeps the same perpendicular distance from the mirror, so lengths and angles are unchanged.",0.60,smooth);
+  }
+}
+wait(1.0);
+step("solve") { par { pulse(right,0.75); say(head,"Same shape. Opposite orientation.",0.4,smooth); } }
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(caption,0.3); fade(eq,0.3); fade(mirror,0.3); fade(left,0.3); fade(right,0.3); fade(C,0.3); fade(Cp,0.3); fade(distance,0.3); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

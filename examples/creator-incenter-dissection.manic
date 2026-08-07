@@ -1,0 +1,56 @@
+// Existing-Manic treatment of fractales/fig0120.asy.
+// A finite radial construction teaches why a reflected wedge closes.
+
+title("Six Wedges Close a Circle");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Geometry tagline=Symmetry_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=gold secondary=cyan footer=compact cta=Build_the_proof safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Turn_Symmetry_Into_Proof cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080;
+text(kicker,(cx,h*0.10),"MANIC · RADIAL DISSECTION");
+text(head,(cx,h*0.17),"Why do six wedges close perfectly?");
+text(caption,(cx,h*0.79),"One wedge turns through 60°. Six equal turns make a complete revolution.");
+equation(answer,(cx,h*0.72),`6\times60^\circ=360^\circ`,34*u);
+size(kicker,20*u); bold(kicker); color(kicker,gold);
+size(head,27*u); bold(head); wrap(head,w*0.76);
+size(caption,20*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+let cy0=h*0.48; let rr=95*u;
+polygon(seed,(cx,cy0),(cx,cy0-rr),(cx+0.866*rr,cy0-0.5*rr));
+outlined(seed); outline(seed,cyan); color(seed,panel); stroke(seed,3);
+line(bis,(cx,cy0),(cx+0.43*rr,cy0-0.75*rr)); color(bis,gold); stroke(bis,3);
+tag(seed,wedge); tag(bis,wedge);
+repeat(rosette,wedge,"layout=radial count=6 radius=0 face=out rotate=0 scale=1");
+gradient(rosette,cyan,magenta,gold);
+untraced(rosette); untraced(seed); untraced(bis);
+circle(center,(cx,cy0),8*u); color(center,gold); hidden(center);
+hidden(kicker); hidden(head); hidden(caption); hidden(answer);
+
+step("pose") { par { show(kicker,0.3); show(head,0.45); show(caption,0.35); show(center,0.2); } }
+wait(0.8);
+step("start with one wedge") {
+  seq {
+    draw(seed,0.60,smooth);
+    draw(bis,0.40,smooth);
+    say(caption,"The construction begins with one 60° triangular wedge and its incenter ray.",0.4);
+  }
+}
+wait(0.85);
+step("repeat around the center") {
+  par { fade(seed,0.2); fade(bis,0.2); draw(rosette,2.6,smooth); say(caption,"Rotate the same geometry—not a hand-drawn copy—six times.",0.4); }
+}
+wait(0.95);
+step("read the invariant angle") {
+  par {
+    pulse(rosette,0.90);
+    say(caption,"Each copy contributes the same 60° turn, so the construction closes exactly after six copies.",0.60,smooth);
+  }
+}
+wait(1.0);
+step("solve") { par { show(answer,0.5); pulse(rosette,0.8); say(head,"The angle sum forces closure.",0.4,smooth); } }
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(caption,0.3); fade(answer,0.3); fade(rosette,0.4); fade(center,0.3); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

@@ -1,0 +1,77 @@
+// Existing-Manic treatment of animations/fig0140.asy.
+// `tree3` replaces a general 3D grammar with one meaningful creator question.
+
+title("Counting a Fractal Tree");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Generative tagline=Growth_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=lime secondary=cyan footer=compact cta=Grow_the_rule safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Animate_Recursive_Growth cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080;
+text(kicker,(cx,h*0.10),"BINARY GROWTH · DEPTH 10");
+text(head,(cx,h*0.17),"How many branches will appear?");
+text(caption,(cx,h*0.80),"Every branch creates two children. Count generations, not individual lines.");
+equation(eq,(cx,h*0.73),`1+2+4+\cdots+2^9=2^{10}-1`,31*u);
+size(kicker,20*u); bold(kicker); color(kicker,lime);
+size(head,27*u); bold(head); wrap(head,w*0.76);
+size(caption,19*u); bold(caption); wrap(caption,w*0.72); color(caption,dim);
+
+tree3(tree,(0,0,-3.0),2.0,27,0.72,10,42);
+for i in 0..10 {
+  color(tree.d{i},lime);
+  untraced(tree.d{i});
+  hidden(tree.d{i});
+}
+color(tree.leaves,cyan); hidden(tree.leaves);
+camera3((9,9,6),(0,0,1.4),42,perspective);
+hidden(kicker); hidden(head); hidden(caption); hidden(eq);
+
+step("pose") {
+  par {
+    show(kicker,0.3); show(head,0.45); show(caption,0.35);
+    view3(tree,"isometric",0.75,smooth,1.45);
+  }
+}
+wait(0.85);
+step("grow generation by generation") {
+  par {
+    stagger(0.16) {
+      for i in 0..10 {
+        par { show(tree.d{i},0.12); draw(tree.d{i},0.52,smooth); }
+      }
+    }
+    seq {
+      wait(0.55);
+      orbit3(60,24,17,2.8,smooth);
+    }
+    say(caption,"Each generation appears from the previous one: split, turn, shrink.",0.40);
+  }
+}
+wait(0.95);
+step("show the canopy and sum") {
+  par {
+    show(tree.leaves,0.55);
+    show(eq,0.5);
+    say(caption,"Now count generations with one geometric series.",0.4);
+  }
+}
+wait(0.9);
+step("read the recurrence") {
+  par {
+    pulse(tree,0.90);
+    say(caption,"Generation k contains 2ᵏ branches; adding generations 0 through 9 produces a geometric sum.",0.65,smooth);
+  }
+}
+wait(1.0);
+step("solve") { par { rewrite(eq,`\boxed{1023\text{ branches}}`,0.8,smooth); pulse(tree.leaves,0.85); say(head,"Depth 10 produces 1,023 branches.",0.45,smooth); } }
+wait(1.25);
+step("cta") {
+  par {
+    fade(kicker,0.3); fade(head,0.3); fade(caption,0.3); fade(eq,0.3);
+    for i in 0..10 { fade(tree.d{i},0.40); }
+    fade(tree.leaves,0.40); fade(me.footer,0.3); show(me.endcard,0.6);
+  }
+}
+wait(2.2);

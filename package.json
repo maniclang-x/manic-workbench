@@ -1,0 +1,51 @@
+{
+  "name": "@maniclang/workbench",
+  "version": "0.1.0",
+  "description": "Local-first public interface for the Manic Engine",
+  "type": "module",
+  "bin": {
+    "manic-workbench": "dist/server/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CONTRIBUTING.md",
+    "examples"
+  ],
+  "scripts": {
+    "build": "node scripts/clean.mjs && npm run build:client && npm run build:server",
+    "build:client": "vite build",
+    "build:server": "tsc -p tsconfig.server.json",
+    "dev": "npm run build:client && concurrently -k \"vite build --watch\" \"tsx watch src/server/cli.ts --no-open\"",
+    "start": "node dist/server/cli.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit",
+    "pack:check": "npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.0",
+    "@monaco-editor/react": "^4.7.0",
+    "hono": "^4.10.8",
+    "monaco-editor": "^0.53.0",
+    "open": "^10.2.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.2",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0",
+    "vitest": "^4.0.16"
+  }
+}

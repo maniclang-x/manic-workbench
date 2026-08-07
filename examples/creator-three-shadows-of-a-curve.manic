@@ -1,0 +1,48 @@
+// Whole-geometry projections are derived from the one changing space curve.
+
+title("Three Shadows of One Curve");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_3D tagline=Spatial_thinking_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=cyan secondary=gold footer=compact cta=Project_your_idea safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Make_3D_Ideas_Clear cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080;
+text(kicker,(cx,h*0.10),"MANIC · ORTHOGONAL PROJECTION");
+text(head,(cx,h*0.17),"Can three shadows reveal one space curve?");
+text(caption,(cx,h*0.80),"A projection keeps two coordinates and sets the third to zero.");
+equation(eq,(cx,h*0.73),`\pi_{xy}(x,y,z)=(x,y,0)`,31*u);
+size(kicker,20*u); bold(kicker); color(kicker,cyan);
+size(head,26*u); bold(head); wrap(head,w*0.76);
+size(caption,20*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+curve3(space,"2*cos(t)","2*sin(t)","0.28*t-2.6",(0,18.85)); color(space,gold); thick(space,0.055);
+projectpath3(xy,space,xy); color(xy,cyan); thick(xy,0.035);
+projectpath3(xz,space,xz); color(xz,magenta); thick(xz,0.035);
+projectpath3(yz,space,yz); color(yz,lime); thick(yz,0.035);
+tag(xy,shadows); tag(xz,shadows); tag(yz,shadows);
+untraced(space); untraced(shadows);
+camera3((18,18,14),(0,0,0),48,perspective);
+hidden(kicker); hidden(head); hidden(caption); hidden(eq);
+
+step("pose") { par { show(kicker,0.3); show(head,0.45); show(caption,0.35); draw(space,1.4,smooth); } }
+wait(0.85);
+step("drop the shadows") {
+  par { draw(shadows,1.8,smooth); show(eq,0.45); orbit3(55,18,24,2.4,smooth); say(caption,"XY, XZ, and YZ preserve different pairs of coordinates.",0.45); }
+}
+wait(1.0);
+step("compare what each shadow loses") {
+  par {
+    rotate3(space,(18,35,12),1.8,smooth);
+    pulse(shadows,0.90);
+    say(caption,"Rotate the source and all three shadows update from the same geometry—XY forgets height, XZ depth, and YZ width.",0.65,smooth);
+  }
+}
+wait(1.0);
+step("solve") {
+  par { say(head,"Together, the shadows recover the structure.",0.45,smooth); pulse(space,0.75); }
+}
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(caption,0.3); fade(eq,0.3); fade(space,0.4); fade(shadows,0.4); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

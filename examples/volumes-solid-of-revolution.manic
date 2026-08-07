@@ -1,0 +1,111 @@
+// volumes-solid-of-revolution — Plate IX of the Problem Book, built from the
+// classic slide: y = sqrt(x) rotated about the x-axis on [0, 4]; find the
+// volume. Fig (a): the region + one red strip R(x) = sqrt(x). Fig (b): the
+// solid, with that same strip now a red DISC. The slide's equation chain is
+// replayed verbatim by rewrite: pi R^2 (thickness) -> pi ∫ x dx -> 8 pi.
+// (revolve3 spins about the vertical axis, so we stand the x-axis upright -
+//  then roll3(90) lays the finished solid back down, just like the book.)
+title("Volumes - Solid of Revolution");
+canvas("16:9");
+template("paper");
+masthead("The Problem Book", "Plate IX");
+
+// ---------- HUD ----------
+text(head, (cx, 96), "Volumes - Solid of Revolution"); display(head); cursor(head);
+text(sub, (cx, 140), `$y=\sqrt{x}$ rotated about the x-axis on [0, 4] - find the volume of the solid`); size(sub, 26); color(sub, teal); hidden(sub);
+text(cap, (cx, h - 40), ""); size(cap, 26);
+text(figl, (455, 640), ""); size(figl, 24); color(figl, dim);
+counter(vol, (w - 185, 130), 0, 2, "V = ", ""); color(vol, gold); hidden(vol);
+
+// the slide's derivation, one living equation
+equation(eqV, (955, 250), `V_{\text{disk}} \;=\; \pi R^{2}\,(\text{thickness})`, 30); hidden(eqV);
+
+// ---------- fig (a): the region and one strip ----------
+let gx = 240;
+let gy = 520;
+arrow(xax, (gx - 60, gy), (gx + 4*110 + 60, gy)); untraced(xax); stroke(xax, 3); tag(xax, f2);
+arrow(yax, (gx, gy), (gx, 195)); untraced(yax); stroke(yax, 3); tag(yax, f2);
+text(xl0, (gx, gy + 26), "0"); size(xl0, 22); color(xl0, dim); hidden(xl0); tag(xl0, f2);
+text(xl4, (gx + 440, gy + 26), "4"); size(xl4, 22); color(xl4, dim); hidden(xl4); tag(xl4, f2);
+plot(rq, (gx, gy), 110, 150, "sqrt(x)", (0, 4));
+untraced(rq); stroke(rq, 4); color(rq, blue); tag(rq, f2);
+dot(rider, (gx, gy), 7); color(rider, gold); glow(rider, 8); hidden(rider); tag(rider, f2);
+area(arq, rq, 0, 0); color(arq, cyan); opacity(arq, 0.3); tag(arq, f2);
+// the representative strip at x = 2.25 (declared low, rises into place)
+rect(strip, (gx + 2.25*110, gy - 1.5*150/2 + 24), 14, 1.5*150);
+color(strip, red); opacity(strip, 0.85); hidden(strip); tag(strip, f2);
+text(rlab, (gx + 2.25*110 + 128, gy - 140), `$R(x)=\sqrt{x}$`); size(rlab, 26); color(rlab, red); hidden(rlab); tag(rlab, f2);
+
+// ---------- fig (b): the solid ----------
+camera3((5.2, -6.2, 3.6), (0, 0, 1.5), 42);
+curve3(prof, "sqrt(t)", "0", "t", (0, 4)); untraced(prof); thick(prof, 0.04); color(prof, blue);
+revolve3(ghost, (0, 0, 0), "sqrt(t)", (0, 4), 64);
+finish3(ghost, "wire=1"); color(ghost, teal); opacity(ghost, 0.35); untraced(ghost);
+revolve3(solid, (0, 0, 0), "sqrt(t)", (0, 4), 64);
+finish3(solid, "shading=smooth depth=0.2 shadow=0.2"); color(solid, gold); opacity(solid, 0.9); hidden(solid);
+// the same strip, now a red disc at x = 2.25 with R = 1.5
+prism3(slice, (0, 0, 2.25), 48, 1.5, 0.16); color(slice, red); hidden(slice);
+arrow3(rarr, (0, 0, 2.25), (1.5, 0, 2.25)); thick(rarr, 0.03); color(rarr, red); untraced(rarr);
+text(rlab3, (cx, cy), `$R(x)=\sqrt{x}$`); size(rlab3, 26); color(rlab3, red); hidden(rlab3);
+pin3(rlab3, (0.9, 0, 2.6), (0, -28));
+text(ax4, (cx, cy), "x = 4"); size(ax4, 22); color(ax4, dim); hidden(ax4);
+pin3(ax4, (0, 0, 4.2), (0, -14));
+
+// ================= timeline =================
+
+// ---- the problem
+type(head, 1.1);
+show(sub, 0.6);
+say(figl, "Fig. (a) - the region and one strip", 0.3);
+par { draw(xax, 0.6); draw(yax, 0.6); show(xl0, 0.5); show(xl4, 0.5); }
+show(rider, 0.2);
+par { draw(rq, 1.3); travel(rider, rq, 1.3, smooth); }
+fade(rider, 0.3);
+say(cap, `the region under $y=\sqrt{x}$, from 0 to 4`, 0.5);
+to(arq, x, 4, 1.6, smooth);
+par { show(strip, 0.4); shift(strip, (0, -24), 0.4, out); show(rlab, 0.5); }
+pulse(strip, 0.8);
+say(cap, `one strip at $x$, height $R(x)=\sqrt{x}$ - now SPIN it around the x-axis`, 0.5);
+cue(whoosh);
+
+// ---- the derivation begins
+show(eqV, 0.6);
+wait(0.9);
+cue(tick);
+rewrite(eqV, `V \;=\; \pi\!\int_{0}^{4}\big(\sqrt{x}\,\big)^{2}\,dx`, 0.9);
+say(cap, "each strip sweeps a disc: area pi R squared, thickness dx", 0.5);
+cue(tick);
+rewrite(eqV, `V \;=\; \pi\!\int_{0}^{4} x\,dx`, 0.9);
+say(cap, "square the square root - the integrand collapses to plain x", 0.5);
+wait(0.8);
+
+// ---- fig (b): the solid generated
+say(figl, "Fig. (b) - the solid generated", 0.3);
+fade(f2, 0.7);
+draw(prof, 1.2);
+par { turn3(prof, (0, 0, 2), z, 360, 2.4, smooth); draw(ghost, 2.4); }
+show(solid, 1.2);
+show(ax4, 0.5);
+par { show(slice, 0.5); draw(rarr, 0.5); show(rlab3, 0.5); }
+pulse(slice, 0.9);
+say(cap, `the same strip, returned as a red DISC of radius $\sqrt{x}$`, 0.5);
+wait(0.6);
+
+// ---- evaluate: the number arrives
+show(vol, 0.3);
+cue(tick);
+rewrite(eqV, `V \;=\; \pi\,\tfrac{x^{2}}{2}\,\Big|_{0}^{4}`, 0.9);
+par { to(vol, value, 25.13, 2.0, smooth); fade(ghost, 1.5); }
+cue(tick);
+rewrite(eqV, `\boxed{\;V \;=\; \tfrac{\pi}{2}\,(16-0) \;=\; 8\pi \ \text{units}^{3}\;}`, 1.0);
+cue(chime);
+flash(slice, red);
+say(cap, `$V = 8\pi \approx 25.13$ cubic units - exactly`, 0.5);
+wait(0.8);
+
+// ---- lay it down, like the book
+say(cap, "and to match the textbook: lay the axis back down", 0.5);
+roll3(90, 1.6, smooth);
+breathe(eqV, 3, 0.05, 0, 5);
+say(cap, "one strip, spun into a solid - volumes by discs", 0.6);
+wait(2.4);

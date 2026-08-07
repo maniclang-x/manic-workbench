@@ -1,0 +1,53 @@
+// thales-semicircle-short — 9:16 quiz Short (~23s): the angle in a semicircle.
+// The vertex C slides along the arc during the think phase - the angle never
+// changes. Right-angle mark appears exactly at the reveal.
+title("Thales' Theorem in 20 Seconds");
+canvas("9:16");
+template("black");
+
+creator(me, "@anish2good name=Science_Lab yt=zarigatongy x=@anish2good web=8gwifi.org/manic footer=social accent=cyan");
+
+quiz(q, `AB is a diameter. What is $\angle ACB$?`, "layout=media-first");
+option(q, "60°");
+option(q, "90°", correct);
+option(q, "120°");
+option(q, "it depends on C");
+timing(q, "ask=4 options=4 think=8 reveal=3 hold=4");
+explain(q, "Any angle drawn from a diameter is a right angle - Thales' theorem, 2,600 years old.");
+
+// ---------- the figure (geo kit: exact by construction) ----------
+point(A, (cx - 190, 900), "A"); size(A.label, 34); hidden(A);
+point(B, (cx + 190, 900), "B"); size(B.label, 34); hidden(B);
+midpoint(O, A, B); label(O, "O"); size(O.label, 30); hidden(O);
+circle2(circ, O, A); outlined(circ); stroke(circ, 3); untraced(circ);
+point(C, (cx - 80, 728), "C"); size(C.label, 34); hidden(C);
+segment(dia, A, B); stroke(dia, 4); color(dia, gold); untraced(dia);
+segment(ca, C, A); stroke(ca, 4); color(ca, cyan); untraced(ca);
+segment(cb, C, B); stroke(cb, 4); color(cb, cyan); untraced(cb);
+rightangle(ra, A, C, B); color(ra, magenta); hidden(ra);
+
+socials(me);
+
+// ================= timeline =================
+par {
+  run(q);
+  seq {
+    // build the figure through the ask + options phases
+    wait(0.8);
+    par { show(A, 0.4); show(B, 0.4); }
+    draw(circ, 1.2);
+    draw(dia, 0.8);
+    show(O, 0.4);
+    show(C, 0.4);
+    par { draw(ca, 0.9); draw(cb, 0.9); }
+    // think phase: C wanders - the segments reflow, the angle holds
+    wait(2.0);
+    move(C, (cx + 122, 754), 1.6, smooth);
+    // land the right-angle mark exactly on the reveal (t = 16s)
+    wait(5.5);
+    show(ra, 0.4);
+    flash(ra, magenta);
+    cue(pop);
+  }
+}
+wait(0.5);

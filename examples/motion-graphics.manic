@@ -1,0 +1,81 @@
+// motion-graphics.manic — persistent objects, paths, particles, and a clean settle
+
+title("Motion Graphics Essentials");
+canvas("9:16");
+template("mono");
+watermark(manicMark, (150, 145), "Made With Manic");
+
+let accent = 194;
+let warm = 38;
+
+text(kicker, (540, 170), "MOTION GRAPHICS");
+size(kicker, 24); color(kicker, dim);
+text(headline, (540, 245), "Keep the object. Change its state.");
+size(headline, 42);
+
+rect(chamber, (540, 535), 700, 300);
+outline(chamber, dim); outlined(chamber); stroke(chamber, 3);
+rect(startCell, (350, 535), 290, 270); hidden(startCell);
+particles(dots, startCell, 36, 6, 23);
+hue(dots, accent, 0.58, 0.72); glow(dots, 0.7);
+text(note, (540, 835), "random layout · organic deterministic routes");
+size(note, 25); color(note, dim);
+
+plot(path, (245, 1120), 145, 175, "1-exp(-1.4*x)", (0, 3.8));
+hue(path, warm, 0.60, 0.70); stroke(path, 5); untraced(path);
+dot(marker, (245, 1120), 9); color(marker, fg); glow(marker, 1.0);
+text(pathNote, (540, 1215), "travel moves the real marker — then it stays");
+size(pathNote, 25); color(pathNote, dim);
+
+line(connector, (245, 1120), (835, 850)); hidden(connector);
+plot(pathMorph, (245, 1120), 145, 175, "1-exp(-1.4*x)", (0, 3.8));
+hue(pathMorph, warm, 0.60, 0.70); stroke(pathMorph, 5);
+morph(pathMorph, connector); hidden(pathMorph);
+
+circle(orbit, (540, 535), 245); hidden(orbit);
+
+step("scatter") {
+  seq {
+    par {
+      seq { arrange(dots, chamber, "random", 1.25, out); wander(dots, 1.75); }
+      seq { wait(0.25); say(note, "same dots · natural motion · repeatable render", 0.45); }
+    }
+  }
+}
+
+step("follow-a-path") {
+  seq {
+    par {
+      draw(path, 2.4, smooth);
+      travel(marker, path, 2.4, smooth);
+    }
+    wait(0.45);
+  }
+}
+
+step("preserve-the-path") {
+  seq {
+    par {
+      fade(path, 0.20);
+      show(pathMorph, 0.10);
+      to(pathMorph, morph, 1, 0.90, smooth);
+      say(pathNote, "morph keeps an open path open", 0.45);
+    }
+    wait(0.45);
+  }
+}
+
+step("arrive-and-settle") {
+  seq {
+    par {
+      arrange(dots, orbit, "ring", 1.15, smooth);
+      fade(chamber, 0.35);
+      seq { wait(0.45); say(note, "ring arrival", 0.35); }
+    }
+    par {
+      transform(dots, (540,535), 0.9659, -0.2588, 0.2588, 0.9659, 0.50, out);
+      say(note, "brief motion → a deliberate stop", 0.35);
+    }
+    wait(1.20);
+  }
+}

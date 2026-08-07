@@ -1,0 +1,57 @@
+// tangent-length-short — 9:16 quiz Short (~23s): tangent from an external
+// point. Radius 5, distance 13 - the hidden 5-12-13 right triangle. The
+// tangent line and its touch point come from the geo kit (exact, not eyeballed).
+title("The Tangent Length Trick");
+canvas("9:16");
+template("black");
+
+creator(me, "@anish2good name=Science_Lab yt=zarigatongy x=@anish2good web=8gwifi.org/manic footer=social accent=cyan");
+
+quiz(q, `$P$ is 13 cm from the centre of a circle of radius 5 cm. How long is the tangent from $P$?`, "layout=media-first");
+option(q, "8 cm");
+option(q, "11 cm");
+option(q, "12 cm", correct);
+option(q, `$\sqrt{194}$ cm`);
+timing(q, "ask=4 options=4 think=8 reveal=3 hold=4");
+explain(q, `Radius meets tangent at $90^\circ$, so $x^2 = 13^2 - 5^2 = 144$: the 5-12-13 triple.`);
+
+// ---------- the figure (unit: 28 px per cm) ----------
+point(O, (cx - 160, 900), "O"); size(O.label, 30); hidden(O);
+point(P, (cx + 204, 900), "P"); size(P.label, 34); hidden(P);
+point(Q, (cx - 20, 900)); hidden(Q);              // helper: a point on the circle
+circle2(circ, O, Q); outlined(circ); stroke(circ, 3); untraced(circ);
+tangent(T, P, O, Q); hidden(T0); hidden(T1);       // touch points, kit-computed
+segment(hyp, O, P); stroke(hyp, 3); dashed(hyp); color(hyp, dim); untraced(hyp);
+segment(rad, O, T0); stroke(rad, 4); color(rad, gold); untraced(rad);
+segment(tanseg, P, T0); stroke(tanseg, 4); color(tanseg, cyan); untraced(tanseg);
+rightangle(ra, O, T0, P); color(ra, magenta); hidden(ra);
+text(n5, (cx - 185, 828), "5"); size(n5, 32); color(n5, gold); hidden(n5);
+text(n13, (cx + 22, 942), "13"); size(n13, 32); color(n13, dim); hidden(n13);
+text(nx, (cx + 70, 786), "x = ?"); size(nx, 32); color(nx, cyan); hidden(nx);
+text(n12, (cx + 70, 786), "x = 12"); size(n12, 32); color(n12, lime); hidden(n12);
+
+socials(me);
+
+// ================= timeline =================
+par {
+  run(q);
+  seq {
+    wait(0.8);
+    par { show(O, 0.4); show(P, 0.4); }
+    draw(circ, 1.2);
+    par { draw(hyp, 0.8); show(n13, 0.4); }
+    show(T0, 0.4);
+    draw(tanseg, 0.9);
+    show(nx, 0.4);
+    par { draw(rad, 0.8); show(n5, 0.4); }
+    // the given right angle IS the hint - show it during the think phase
+    show(ra, 0.4);
+    pulse(ra, 0.8);
+    // answer stamps in at the reveal (t = 16s)
+    wait(7.2);
+    par { fade(nx, 0.3); show(n12, 0.4); }
+    flash(tanseg, lime);
+    cue(pop);
+  }
+}
+wait(0.5);

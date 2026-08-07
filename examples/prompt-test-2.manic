@@ -1,0 +1,239 @@
+title("Olympiad Question");
+canvas("16:9");
+
+let ox = cx - 230;
+let oy = cy + 35;
+let r = 205;
+
+let axp = ox - r;
+let ayp = oy;
+let bxp = ox + 70;
+let byp = oy - 193;
+let cxp = ox + r;
+let cyp = oy;
+let dxp = ox - 132;
+let dyp = oy + 157;
+let pxp = ox - 41;
+let pyp = oy;
+
+text(head, (cx, 65), "olympiad geometry question");
+display(head);
+color(head, cyan);
+size(head, 32);
+hidden(head);
+
+text(cap, (cx, h - 55), "");
+display(cap);
+color(cap, fg);
+size(cap, 22);
+hidden(cap);
+
+circle(circ, (ox, oy), r);
+color(circ, dim);
+stroke(circ, 3);
+untraced(circ);
+
+line(chordAB, (axp, ayp), (bxp, byp));
+line(chordBC, (bxp, byp), (cxp, cyp));
+line(chordCD, (cxp, cyp), (dxp, dyp));
+line(chordDA, (dxp, dyp), (axp, ayp));
+color(chordAB, fg);
+color(chordBC, fg);
+color(chordCD, fg);
+color(chordDA, fg);
+stroke(chordAB, 3);
+stroke(chordBC, 3);
+stroke(chordCD, 3);
+stroke(chordDA, 3);
+untraced(chordAB);
+untraced(chordBC);
+untraced(chordCD);
+untraced(chordDA);
+
+line(diagAC, (axp, ayp), (cxp, cyp));
+line(diagBD, (bxp, byp), (dxp, dyp));
+color(diagAC, lime);
+color(diagBD, lime);
+stroke(diagAC, 3);
+stroke(diagBD, 3);
+untraced(diagAC);
+untraced(diagBD);
+
+dot(A, (axp, ayp), 7);
+dot(B, (bxp, byp), 7);
+dot(C, (cxp, cyp), 7);
+dot(D, (dxp, dyp), 7);
+dot(P, (pxp, pyp), 6);
+color(A, cyan);
+color(B, cyan);
+color(C, cyan);
+color(D, cyan);
+color(P, magenta);
+glow(P, 8);
+hidden(A);
+hidden(B);
+hidden(C);
+hidden(D);
+hidden(P);
+
+text(labA, (axp - 30, ayp + 8), "A");
+text(labB, (bxp + 22, byp - 14), "B");
+text(labC, (cxp + 28, cyp + 8), "C");
+text(labD, (dxp - 28, dyp + 25), "D");
+text(labP, (pxp + 15, pyp - 22), "P");
+display(labA);
+display(labB);
+display(labC);
+display(labD);
+display(labP);
+color(labA, cyan);
+color(labB, cyan);
+color(labC, cyan);
+color(labD, cyan);
+color(labP, magenta);
+size(labA, 23);
+size(labB, 23);
+size(labC, 23);
+size(labD, 23);
+size(labP, 23);
+hidden(labA);
+hidden(labB);
+hidden(labC);
+hidden(labD);
+hidden(labP);
+
+text(q1, (cx + 255, cy - 160), "Problem");
+text(q2, (cx + 255, cy - 105), "A, B, C, D lie on one circle.");
+text(q3, (cx + 255, cy - 65), "Diagonals AC and BD meet at P.");
+text(q4, (cx + 255, cy - 10), "Prove:");
+text(q5, (cx + 255, cy + 35), "PA * PC = PB * PD");
+display(q1);
+display(q2);
+display(q3);
+display(q4);
+display(q5);
+color(q1, cyan);
+color(q2, fg);
+color(q3, fg);
+color(q4, fg);
+color(q5, lime);
+size(q1, 30);
+size(q2, 22);
+size(q3, 22);
+size(q4, 24);
+size(q5, 30);
+hidden(q1);
+hidden(q2);
+hidden(q3);
+hidden(q4);
+hidden(q5);
+
+text(hint, (cx + 255, cy + 115), "Hint: compare triangles APB and DPC");
+display(hint);
+color(hint, magenta);
+size(hint, 21);
+hidden(hint);
+
+line(hAP, (axp, ayp), (pxp, pyp));
+line(hPB, (pxp, pyp), (bxp, byp));
+line(hAB, (axp, ayp), (bxp, byp));
+color(hAP, cyan);
+color(hPB, cyan);
+color(hAB, cyan);
+stroke(hAP, 5);
+stroke(hPB, 5);
+stroke(hAB, 5);
+glow(hAP, 8);
+glow(hPB, 8);
+glow(hAB, 8);
+untraced(hAP);
+untraced(hPB);
+untraced(hAB);
+tag(hAP, triAPB);
+tag(hPB, triAPB);
+tag(hAB, triAPB);
+
+line(hDP, (dxp, dyp), (pxp, pyp));
+line(hPC, (pxp, pyp), (cxp, cyp));
+line(hDC, (dxp, dyp), (cxp, cyp));
+color(hDP, magenta);
+color(hPC, magenta);
+color(hDC, magenta);
+stroke(hDP, 5);
+stroke(hPC, 5);
+stroke(hDC, 5);
+glow(hDP, 8);
+glow(hPC, 8);
+glow(hDC, 8);
+untraced(hDP);
+untraced(hPC);
+untraced(hDC);
+tag(hDP, triDPC);
+tag(hPC, triDPC);
+tag(hDC, triDPC);
+
+show(head, 0.6);
+show(cap, 0.4);
+say(cap, "A clean cyclic quadrilateral problem.", 0.7);
+
+par {
+draw(circ, 0.8);
+draw(chordAB, 0.8);
+draw(chordBC, 0.8);
+draw(chordCD, 0.8);
+draw(chordDA, 0.8);
+}
+
+par {
+show(A, 0.3);
+show(B, 0.3);
+show(C, 0.3);
+show(D, 0.3);
+show(labA, 0.3);
+show(labB, 0.3);
+show(labC, 0.3);
+show(labD, 0.3);
+}
+say(cap, "Four points lie on the same circle.", 0.7);
+
+par {
+draw(diagAC, 0.7);
+draw(diagBD, 0.7);
+}
+par {
+show(P, 0.3);
+show(labP, 0.3);
+}
+say(cap, "The diagonals meet at P.", 0.7);
+
+stagger(0.18) {
+show(q1, 0.3);
+show(q2, 0.3);
+show(q3, 0.3);
+show(q4, 0.3);
+show(q5, 0.4);
+}
+pulse(q5, 0.7);
+say(cap, "Your goal is to prove this product relation.", 0.8);
+
+par {
+draw(hAP, 0.5);
+draw(hPB, 0.5);
+draw(hAB, 0.5);
+}
+say(cap, "First focus on triangle APB.", 0.6);
+
+par {
+draw(hDP, 0.5);
+draw(hPC, 0.5);
+draw(hDC, 0.5);
+}
+show(hint, 0.5);
+say(cap, "Find two equal angles, then use similarity.", 0.8);
+
+par {
+flash(triAPB, cyan);
+flash(triDPC, magenta);
+pulse(q5, 0.6);
+}
+wait(1.0);

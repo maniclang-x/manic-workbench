@@ -1,0 +1,319 @@
+title("AI To Human");
+canvas("16:9");
+
+let rx = cx - 330;
+let hx = cx + 320;
+let base = cy + 230;
+
+rect(sky, (cx, cy), w, h);
+filled(sky);
+hue(sky, 195, 0.38, 0.78);
+opacity(sky, 0.42);
+
+rect(field, (cx, cy + 245), w, 250);
+filled(field);
+hue(field, 82, 0.55, 0.52);
+opacity(field, 0.5);
+
+text(titleText, (cx, 58), "from 100% AI to 100% Human");
+display(titleText);
+color(titleText, cyan);
+size(titleText, 34);
+hidden(titleText);
+
+text(cap, (cx, h - 48), "");
+display(cap);
+color(cap, fg);
+size(cap, 21);
+hidden(cap);
+
+ellipse(cloud1, (cx - 110, cy - 210), 120, 42, 0);
+ellipse(cloud2, (cx + 10, cy - 230), 150, 50, 0);
+ellipse(cloud3, (cx + 145, cy - 205), 120, 40, 0);
+filled(cloud1);
+filled(cloud2);
+filled(cloud3);
+color(cloud1, fg);
+color(cloud2, fg);
+color(cloud3, fg);
+opacity(cloud1, 0.35);
+opacity(cloud2, 0.35);
+opacity(cloud3, 0.35);
+hidden(cloud1);
+hidden(cloud2);
+hidden(cloud3);
+
+rect(robotShirt, (rx, cy + 145), 210, 230);
+filled(robotShirt);
+color(robotShirt, fg);
+opacity(robotShirt, 0.88);
+hidden(robotShirt);
+tag(robotShirt, robot);
+
+rect(robotNeck, (rx, cy - 5), 50, 70);
+filled(robotNeck);
+color(robotNeck, dim);
+hidden(robotNeck);
+tag(robotNeck, robot);
+
+rect(robotHead, (rx, cy - 125), 170, 150);
+filled(robotHead);
+color(robotHead, panel);
+opacity(robotHead, 0.95);
+hidden(robotHead);
+tag(robotHead, robot);
+
+circle(robotEyeL, (rx - 45, cy - 135), 20);
+circle(robotEyeR, (rx + 45, cy - 135), 20);
+filled(robotEyeL);
+filled(robotEyeR);
+color(robotEyeL, void);
+color(robotEyeR, void);
+hidden(robotEyeL);
+hidden(robotEyeR);
+tag(robotEyeL, robot);
+tag(robotEyeR, robot);
+
+rect(robotMouth, (rx, cy - 70), 115, 28);
+filled(robotMouth);
+color(robotMouth, void);
+opacity(robotMouth, 0.75);
+hidden(robotMouth);
+tag(robotMouth, robot);
+
+for i in 0..7 {
+line(tooth{i}, (rx - 50 + 15i, cy - 84), (rx - 50 + 15i, cy - 57));
+color(tooth{i}, dim);
+stroke(tooth{i}, 2);
+untraced(tooth{i});
+tag(tooth{i}, robotLines);
+}
+
+line(robotAnt, (rx - 80, cy - 195), (rx - 115, cy - 270));
+circle(robotAntDot, (rx - 120, cy - 285), 12);
+color(robotAnt, dim);
+stroke(robotAnt, 5);
+untraced(robotAnt);
+filled(robotAntDot);
+color(robotAntDot, panel);
+hidden(robotAntDot);
+tag(robotAnt, robotLines);
+tag(robotAntDot, robot);
+
+circle(earL, (rx - 98, cy - 125), 28);
+circle(earR, (rx + 98, cy - 125), 28);
+filled(earL);
+filled(earR);
+color(earL, dim);
+color(earR, dim);
+hidden(earL);
+hidden(earR);
+tag(earL, robot);
+tag(earR, robot);
+
+line(robotArmL, (rx - 105, cy + 65), (rx - 215, cy + 195));
+line(robotArmR, (rx + 105, cy + 65), (rx + 185, cy - 15));
+line(robotForeL, (rx - 215, cy + 195), (rx - 85, cy + 250));
+line(robotForeR, (rx + 185, cy - 15), (rx + 145, cy - 105));
+color(robotArmL, panel);
+color(robotArmR, panel);
+color(robotForeL, panel);
+color(robotForeR, panel);
+stroke(robotArmL, 28);
+stroke(robotArmR, 24);
+stroke(robotForeL, 28);
+stroke(robotForeR, 22);
+untraced(robotArmL);
+untraced(robotArmR);
+untraced(robotForeL);
+untraced(robotForeR);
+tag(robotArmL, robotLines);
+tag(robotArmR, robotLines);
+tag(robotForeL, robotLines);
+tag(robotForeR, robotLines);
+
+circle(robotHandL, (rx - 55, cy + 260), 24);
+circle(robotHandR, (rx + 140, cy - 120), 22);
+filled(robotHandL);
+filled(robotHandR);
+color(robotHandL, panel);
+color(robotHandR, panel);
+hidden(robotHandL);
+hidden(robotHandR);
+tag(robotHandL, robot);
+tag(robotHandR, robot);
+
+line(robotLegL, (rx - 45, cy + 255), (rx - 55, base));
+line(robotLegR, (rx + 45, cy + 255), (rx + 55, base));
+color(robotLegL, panel);
+color(robotLegR, panel);
+stroke(robotLegL, 26);
+stroke(robotLegR, 26);
+untraced(robotLegL);
+untraced(robotLegR);
+tag(robotLegL, robotLines);
+tag(robotLegR, robotLines);
+
+text(aiText1, (rx, cy + 105), "100%");
+text(aiText2, (rx, cy + 170), "AI");
+display(aiText1);
+display(aiText2);
+color(aiText1, void);
+color(aiText2, void);
+size(aiText1, 46);
+size(aiText2, 54);
+bold(aiText1);
+bold(aiText2);
+hidden(aiText1);
+hidden(aiText2);
+tag(aiText1, robot);
+tag(aiText2, robot);
+
+arrow(changeArrow, (cx - 105, cy + 10), (cx + 105, cy + 10));
+color(changeArrow, magenta);
+stroke(changeArrow, 10);
+glow(changeArrow, 10);
+untraced(changeArrow);
+
+text(arrowLabel, (cx, cy - 40), "transform");
+display(arrowLabel);
+color(arrowLabel, magenta);
+size(arrowLabel, 26);
+hidden(arrowLabel);
+
+rect(humanShirt, (hx, cy + 155), 235, 245);
+filled(humanShirt);
+color(humanShirt, fg);
+opacity(humanShirt, 0.88);
+hidden(humanShirt);
+tag(humanShirt, human);
+
+ellipse(humanFace, (hx, cy - 125), 85, 115, 0);
+filled(humanFace);
+hue(humanFace, 31, 0.55, 0.70);
+hidden(humanFace);
+tag(humanFace, human);
+
+ellipse(hairMain, (hx, cy - 220), 110, 60, 0);
+filled(hairMain);
+hue(hairMain, 28, 0.25, 0.22);
+hidden(hairMain);
+tag(hairMain, human);
+
+for i in 0..8 {
+line(hairSpike{i}, (hx - 85 + 22i, cy - 205), (hx - 62 + 15i, cy - 270 + 18*abs(i - 4)/4));
+color(hairSpike{i}, dim);
+stroke(hairSpike{i}, 13);
+untraced(hairSpike{i});
+tag(hairSpike{i}, humanLines);
+}
+
+circle(humanEyeL, (hx - 30, cy - 145), 7);
+circle(humanEyeR, (hx + 30, cy - 145), 7);
+filled(humanEyeL);
+filled(humanEyeR);
+color(humanEyeL, void);
+color(humanEyeR, void);
+hidden(humanEyeL);
+hidden(humanEyeR);
+tag(humanEyeL, human);
+tag(humanEyeR, human);
+
+line(browL, (hx - 48, cy - 168), (hx - 15, cy - 172));
+line(browR, (hx + 15, cy - 172), (hx + 48, cy - 168));
+line(nose, (hx, cy - 140), (hx - 8, cy - 103));
+line(smile, (hx - 35, cy - 75), (hx + 35, cy - 75));
+color(browL, dim);
+color(browR, dim);
+color(nose, dim);
+color(smile, dim);
+stroke(browL, 5);
+stroke(browR, 5);
+stroke(nose, 3);
+stroke(smile, 4);
+untraced(browL);
+untraced(browR);
+untraced(nose);
+untraced(smile);
+tag(browL, humanLines);
+tag(browR, humanLines);
+tag(nose, humanLines);
+tag(smile, humanLines);
+
+line(humanArmL, (hx - 118, cy + 60), (hx - 160, cy + 255));
+line(humanArmR, (hx + 118, cy + 60), (hx + 175, cy + 250));
+color(humanArmL, panel);
+color(humanArmR, panel);
+stroke(humanArmL, 30);
+stroke(humanArmR, 30);
+untraced(humanArmL);
+untraced(humanArmR);
+tag(humanArmL, humanLines);
+tag(humanArmR, humanLines);
+
+rect(pants, (hx, cy + 300), 190, 95);
+filled(pants);
+color(pants, dim);
+opacity(pants, 0.82);
+hidden(pants);
+tag(pants, human);
+
+text(humanText1, (hx, cy + 105), "100%");
+text(humanText2, (hx, cy + 170), "Human");
+display(humanText1);
+display(humanText2);
+color(humanText1, void);
+color(humanText2, void);
+size(humanText1, 48);
+size(humanText2, 42);
+bold(humanText1);
+bold(humanText2);
+hidden(humanText1);
+hidden(humanText2);
+tag(humanText1, human);
+tag(humanText2, human);
+
+text(note1, (cx, h - 110), "same scene, different identity");
+display(note1);
+color(note1, lime);
+size(note1, 26);
+hidden(note1);
+
+show(titleText, 0.5);
+show(cap, 0.3);
+say(cap, "A stylized version of the picture: AI on the left, human on the right.", 0.8);
+
+par {
+show(cloud1, 0.5);
+show(cloud2, 0.5);
+show(cloud3, 0.5);
+}
+
+par {
+show(robot, 0.7);
+draw(robotLines, 0.7);
+}
+say(cap, "The robot wears a shirt marked 100 percent AI.", 0.7);
+
+par {
+draw(changeArrow, 0.7);
+show(arrowLabel, 0.4);
+}
+pulse(changeArrow, 0.6);
+say(cap, "The arrow shows the shift from artificial to human.", 0.7);
+
+par {
+show(human, 0.7);
+draw(humanLines, 0.7);
+}
+say(cap, "On the right, the character becomes 100 percent Human.", 0.7);
+
+show(note1, 0.5);
+par {
+flash(aiText2, cyan);
+flash(humanText2, lime);
+pulse(changeArrow, 0.7);
+}
+say(cap, "A clear visual contrast: robot identity to human identity.", 0.8);
+
+wait(1.0);

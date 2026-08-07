@@ -1,0 +1,336 @@
+title("Bicentric Quadrilateral");
+canvas("16:9");
+
+let ox = cx - 285;
+let oy = cy + 55;
+
+let axp = ox - 190;
+let ayp = oy - 55;
+let bxp = ox - 55;
+let byp = oy - 190;
+let cxp = ox + 190;
+let cyp = oy - 65;
+let dxp = ox + 65;
+let dyp = oy + 145;
+
+let txp = ox - 120;
+let typ = oy - 125;
+let typYx = ox + 70;
+let typYy = oy - 150;
+let tzp = cxp + 0.55*(dxp - cxp);
+let tzpy = cyp + 0.55*(dyp - cyp);
+let twp = ox - 65;
+let twpy = oy + 65;
+
+text(head, (cx, 58), "olympiad example: find |x - y|");
+display(head);
+color(head, cyan);
+size(head, 31);
+hidden(head);
+
+text(cap, (cx, h - 48), "");
+display(cap);
+color(cap, fg);
+size(cap, 21);
+hidden(cap);
+
+circle(outer, (ox, oy), 230);
+color(outer, dim);
+stroke(outer, 3);
+untraced(outer);
+
+circle(inner, (ox + 15, oy - 20), 82);
+color(inner, magenta);
+stroke(inner, 3);
+glow(inner, 5);
+untraced(inner);
+
+line(sideAB, (axp, ayp), (bxp, byp));
+line(sideBC, (bxp, byp), (cxp, cyp));
+line(sideCD, (cxp, cyp), (dxp, dyp));
+line(sideDA, (dxp, dyp), (axp, ayp));
+color(sideAB, fg);
+color(sideBC, fg);
+color(sideCD, fg);
+color(sideDA, fg);
+stroke(sideAB, 3);
+stroke(sideBC, 3);
+stroke(sideCD, 3);
+stroke(sideDA, 3);
+untraced(sideAB);
+untraced(sideBC);
+untraced(sideCD);
+untraced(sideDA);
+
+line(segCZ, (cxp, cyp), (tzp, tzpy));
+line(segZD, (tzp, tzpy), (dxp, dyp));
+color(segCZ, cyan);
+color(segZD, lime);
+stroke(segCZ, 6);
+stroke(segZD, 6);
+glow(segCZ, 8);
+glow(segZD, 8);
+untraced(segCZ);
+untraced(segZD);
+
+dot(A, (axp, ayp), 7);
+dot(B, (bxp, byp), 7);
+dot(C, (cxp, cyp), 7);
+dot(D, (dxp, dyp), 7);
+dot(TX, (txp, typ), 5);
+dot(TY, (typYx, typYy), 5);
+dot(TZ, (tzp, tzpy), 6);
+dot(TW, (twp, twpy), 5);
+color(A, cyan);
+color(B, cyan);
+color(C, cyan);
+color(D, cyan);
+color(TX, magenta);
+color(TY, magenta);
+color(TZ, magenta);
+color(TW, magenta);
+glow(TZ, 8);
+hidden(A);
+hidden(B);
+hidden(C);
+hidden(D);
+hidden(TX);
+hidden(TY);
+hidden(TZ);
+hidden(TW);
+
+text(labA, (axp - 25, ayp - 10), "A");
+text(labB, (bxp - 8, byp - 32), "B");
+text(labC, (cxp + 28, cyp - 6), "C");
+text(labD, (dxp + 20, dyp + 20), "D");
+text(labX, (txp - 20, typ - 22), "X");
+text(labY, (typYx + 10, typYy - 24), "Y");
+text(labZ, (tzp + 20, tzpy), "Z");
+text(labW, (twp - 32, twpy + 8), "W");
+display(labA);
+display(labB);
+display(labC);
+display(labD);
+display(labX);
+display(labY);
+display(labZ);
+display(labW);
+color(labA, cyan);
+color(labB, cyan);
+color(labC, cyan);
+color(labD, cyan);
+color(labX, magenta);
+color(labY, magenta);
+color(labZ, magenta);
+color(labW, magenta);
+size(labA, 22);
+size(labB, 22);
+size(labC, 22);
+size(labD, 22);
+size(labX, 20);
+size(labY, 20);
+size(labZ, 22);
+size(labW, 20);
+hidden(labA);
+hidden(labB);
+hidden(labC);
+hidden(labD);
+hidden(labX);
+hidden(labY);
+hidden(labZ);
+hidden(labW);
+
+text(sAB, ((axp + bxp)/2 - 35, (ayp + byp)/2 - 28), "70");
+text(sBC, ((bxp + cxp)/2 + 8, (byp + cyp)/2 - 36), "110");
+text(sCD, ((cxp + dxp)/2 + 38, (cyp + dyp)/2 + 8), "130");
+text(sDA, ((dxp + axp)/2 - 55, (dyp + ayp)/2 + 28), "90");
+display(sAB);
+display(sBC);
+display(sCD);
+display(sDA);
+color(sAB, fg);
+color(sBC, fg);
+color(sCD, fg);
+color(sDA, fg);
+size(sAB, 21);
+size(sBC, 21);
+size(sCD, 21);
+size(sDA, 21);
+hidden(sAB);
+hidden(sBC);
+hidden(sCD);
+hidden(sDA);
+
+bracelabel(xbrace, (cxp + 18, cyp + 12), (tzp + 18, tzpy + 12), "x", 14);
+bracelabel(ybrace, (tzp + 18, tzpy + 12), (dxp + 18, dyp + 12), "y", 14);
+color(xbrace, cyan);
+color(ybrace, lime);
+hidden(xbrace);
+hidden(ybrace);
+
+text(p0, (cx + 270, 118), "Problem");
+text(p1, (cx + 270, 165), "AB=70, BC=110, CD=130, DA=90");
+text(p2, (cx + 270, 202), "ABCD is cyclic and tangential.");
+text(p3, (cx + 270, 239), "The incircle touches CD at Z.");
+text(p4, (cx + 270, 276), "CZ=x and ZD=y. Find |x-y|.");
+display(p0);
+display(p1);
+display(p2);
+display(p3);
+display(p4);
+color(p0, cyan);
+color(p1, fg);
+color(p2, fg);
+color(p3, fg);
+color(p4, lime);
+size(p0, 30);
+size(p1, 21);
+size(p2, 21);
+size(p3, 21);
+size(p4, 23);
+hidden(p0);
+hidden(p1);
+hidden(p2);
+hidden(p3);
+hidden(p4);
+
+text(sol0, (cx + 270, 350), "Solution sketch");
+text(sol1, (cx + 270, 392), "area = sqrt(1309070110)");
+text(sol2, (cx + 270, 426), "area = 300sqrt(1001)");
+text(sol3, (cx + 270, 460), "r = area / 200 = 3sqrt(1001)/2");
+text(sol4, (cx + 270, 508), "cos C = 40/103");
+text(sol5, (cx + 270, 542), "sin C = 3sqrt(1001)/103");
+text(sol6, (cx + 270, 590), "x = rcot(C/2)");
+text(sol7, (cx + 270, 624), "x = r(1+cos C)/sin C = 71.5");
+text(sol8, (cx + 270, 658), "y = 130 - 71.5 = 58.5");
+text(ans, (cx + 270, 715), "|x - y| = 13");
+display(sol0);
+display(sol1);
+display(sol2);
+display(sol3);
+display(sol4);
+display(sol5);
+display(sol6);
+display(sol7);
+display(sol8);
+display(ans);
+color(sol0, cyan);
+color(sol1, fg);
+color(sol2, fg);
+color(sol3, fg);
+color(sol4, fg);
+color(sol5, fg);
+color(sol6, fg);
+color(sol7, cyan);
+color(sol8, lime);
+color(ans, magenta);
+size(sol0, 26);
+size(sol1, 20);
+size(sol2, 20);
+size(sol3, 20);
+size(sol4, 20);
+size(sol5, 20);
+size(sol6, 20);
+size(sol7, 21);
+size(sol8, 21);
+size(ans, 34);
+hidden(sol0);
+hidden(sol1);
+hidden(sol2);
+hidden(sol3);
+hidden(sol4);
+hidden(sol5);
+hidden(sol6);
+hidden(sol7);
+hidden(sol8);
+hidden(ans);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "A quadrilateral is both cyclic and tangential.", 0.7);
+
+par {
+draw(outer, 0.8);
+draw(inner, 0.8);
+}
+
+par {
+draw(sideAB, 0.6);
+draw(sideBC, 0.6);
+draw(sideCD, 0.6);
+draw(sideDA, 0.6);
+}
+
+par {
+show(A, 0.25);
+show(B, 0.25);
+show(C, 0.25);
+show(D, 0.25);
+show(labA, 0.25);
+show(labB, 0.25);
+show(labC, 0.25);
+show(labD, 0.25);
+}
+say(cap, "The side lengths are 70, 110, 130, and 90.", 0.7);
+
+par {
+show(sAB, 0.3);
+show(sBC, 0.3);
+show(sCD, 0.3);
+show(sDA, 0.3);
+}
+
+stagger(0.12) {
+show(p0, 0.3);
+show(p1, 0.3);
+show(p2, 0.3);
+show(p3, 0.3);
+show(p4, 0.3);
+}
+say(cap, "The question asks for the difference between the two tangent pieces on CD.", 0.8);
+
+par {
+show(TX, 0.25);
+show(TY, 0.25);
+show(TZ, 0.25);
+show(TW, 0.25);
+show(labX, 0.25);
+show(labY, 0.25);
+show(labZ, 0.25);
+show(labW, 0.25);
+}
+par {
+draw(segCZ, 0.5);
+draw(segZD, 0.5);
+show(xbrace, 0.5);
+show(ybrace, 0.5);
+}
+say(cap, "Let CZ=x and ZD=y, so x+y=130.", 0.7);
+
+stagger(0.12) {
+show(sol0, 0.25);
+show(sol1, 0.25);
+show(sol2, 0.25);
+show(sol3, 0.25);
+}
+say(cap, "Brahmagupta gives the area, and area = r*s gives the inradius.", 0.8);
+
+stagger(0.12) {
+show(sol4, 0.25);
+show(sol5, 0.25);
+}
+say(cap, "The cyclic condition fixes angle C from the four sides.", 0.8);
+
+stagger(0.12) {
+show(sol6, 0.25);
+show(sol7, 0.25);
+show(sol8, 0.25);
+}
+say(cap, "The tangent length from C is r*cot(C/2).", 0.8);
+
+show(ans, 0.5);
+pulse(ans, 0.7);
+flash(segCZ, cyan);
+flash(segZD, lime);
+say(cap, "Therefore the requested value is 13.", 0.8);
+wait(1.0);

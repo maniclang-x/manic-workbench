@@ -1,0 +1,223 @@
+title("Calico Cat Portrait");
+canvas("portrait");
+
+text(head, (cx, 70), "calico cat");
+display(head);
+color(head, cyan);
+size(head, 34);
+hidden(head);
+
+text(cap, (cx, h - 55), "");
+display(cap);
+color(cap, fg);
+size(cap, 22);
+hidden(cap);
+
+ellipse(body, (cx + 55, cy + 250), 210, 320, -10);
+filled(body);
+color(body, fg);
+opacity(body, 0.92);
+hidden(body);
+
+ellipse(face, (cx - 25, cy - 40), 250, 220, -5);
+filled(face);
+color(face, fg);
+opacity(face, 0.96);
+hidden(face);
+
+line(earL1, (cx - 245, cy - 135), (cx - 205, cy - 355));
+line(earL2, (cx - 205, cy - 355), (cx - 55, cy - 210));
+line(earR1, (cx + 65, cy - 220), (cx + 245, cy - 330));
+line(earR2, (cx + 245, cy - 330), (cx + 210, cy - 95));
+color(earL1, fg);
+color(earL2, fg);
+color(earR1, fg);
+color(earR2, fg);
+stroke(earL1, 8);
+stroke(earL2, 8);
+stroke(earR1, 8);
+stroke(earR2, 8);
+untraced(earL1);
+untraced(earL2);
+untraced(earR1);
+untraced(earR2);
+
+line(innerL1, (cx - 205, cy - 305), (cx - 178, cy - 150));
+line(innerL2, (cx + 196, cy - 285), (cx + 135, cy - 145));
+color(innerL1, magenta);
+color(innerL2, magenta);
+stroke(innerL1, 4);
+opacity(innerL1, 0.55);
+opacity(innerL2, 0.55);
+untraced(innerL1);
+untraced(innerL2);
+
+ellipse(patchL, (cx - 135, cy - 115), 115, 135, -18);
+filled(patchL);
+hue(patchL, 35, 0.65, 0.55);
+opacity(patchL, 0.75);
+hidden(patchL);
+
+ellipse(patchTop, (cx - 20, cy - 225), 75, 95, 8);
+filled(patchTop);
+hue(patchTop, 30, 0.75, 0.58);
+opacity(patchTop, 0.82);
+hidden(patchTop);
+
+ellipse(patchR, (cx + 100, cy - 140), 105, 120, 15);
+filled(patchR);
+color(patchR, dim);
+opacity(patchR, 0.7);
+hidden(patchR);
+
+ellipse(patchBody, (cx + 150, cy + 235), 95, 210, -8);
+filled(patchBody);
+color(patchBody, dim);
+opacity(patchBody, 0.75);
+hidden(patchBody);
+
+ellipse(goldBody, (cx + 95, cy + 260), 70, 140, 8);
+filled(goldBody);
+hue(goldBody, 35, 0.7, 0.55);
+opacity(goldBody, 0.78);
+hidden(goldBody);
+
+ellipse(eyeL, (cx - 115, cy - 35), 48, 34, 8);
+ellipse(eyeR, (cx + 70, cy - 30), 48, 34, -8);
+filled(eyeL);
+filled(eyeR);
+color(eyeL, lime);
+color(eyeR, lime);
+opacity(eyeL, 0.88);
+opacity(eyeR, 0.88);
+hidden(eyeL);
+hidden(eyeR);
+
+ellipse(pupilL, (cx - 112, cy - 35), 17, 29, 4);
+ellipse(pupilR, (cx + 67, cy - 30), 17, 29, -4);
+filled(pupilL);
+filled(pupilR);
+color(pupilL, void);
+color(pupilR, void);
+hidden(pupilL);
+hidden(pupilR);
+
+dot(glintL, (cx - 123, cy - 49), 5);
+dot(glintR, (cx + 57, cy - 45), 5);
+color(glintL, fg);
+color(glintR, fg);
+hidden(glintL);
+hidden(glintR);
+
+ellipse(nose, (cx - 25, cy + 75), 31, 23, 0);
+filled(nose);
+color(nose, magenta);
+opacity(nose, 0.75);
+hidden(nose);
+
+line(mouth1, (cx - 25, cy + 95), (cx - 25, cy + 125));
+line(mouth2, (cx - 25, cy + 125), (cx - 62, cy + 145));
+line(mouth3, (cx - 25, cy + 125), (cx + 10, cy + 145));
+color(mouth1, dim);
+color(mouth2, dim);
+color(mouth3, dim);
+stroke(mouth1, 3);
+stroke(mouth2, 3);
+stroke(mouth3, 3);
+untraced(mouth1);
+untraced(mouth2);
+untraced(mouth3);
+
+line(wL1, (cx - 55, cy + 70), (cx - 250, cy + 25));
+line(wL2, (cx - 60, cy + 92), (cx - 255, cy + 95));
+line(wL3, (cx - 55, cy + 113), (cx - 230, cy + 160));
+line(wR1, (cx + 5, cy + 68), (cx + 210, cy + 20));
+line(wR2, (cx + 10, cy + 92), (cx + 230, cy + 90));
+line(wR3, (cx + 5, cy + 115), (cx + 200, cy + 165));
+color(wL1, dim);
+color(wL2, dim);
+color(wL3, dim);
+color(wR1, dim);
+color(wR2, dim);
+color(wR3, dim);
+stroke(wL1, 2);
+stroke(wL2, 2);
+stroke(wL3, 2);
+stroke(wR1, 2);
+stroke(wR2, 2);
+stroke(wR3, 2);
+untraced(wL1);
+untraced(wL2);
+untraced(wL3);
+untraced(wR1);
+untraced(wR2);
+untraced(wR3);
+
+ellipse(chest, (cx - 20, cy + 230), 130, 190, 0);
+filled(chest);
+color(chest, fg);
+opacity(chest, 0.85);
+hidden(chest);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "A quick stylized portrait from the photo.", 0.7);
+
+par {
+show(body, 0.7);
+show(face, 0.7);
+draw(earL1, 0.6);
+draw(earL2, 0.6);
+draw(earR1, 0.6);
+draw(earR2, 0.6);
+}
+par {
+draw(innerL1, 0.4);
+draw(innerL2, 0.4);
+}
+
+stagger(0.08) {
+show(patchL, 0.35);
+show(patchTop, 0.35);
+show(patchR, 0.35);
+show(patchBody, 0.35);
+show(goldBody, 0.35);
+show(chest, 0.35);
+}
+say(cap, "Calico patches: white, gold, and dark fur.", 0.7);
+
+par {
+show(eyeL, 0.35);
+show(eyeR, 0.35);
+show(pupilL, 0.35);
+show(pupilR, 0.35);
+show(glintL, 0.35);
+show(glintR, 0.35);
+}
+pulse(eyeL, 0.45);
+pulse(eyeR, 0.45);
+
+par {
+show(nose, 0.3);
+draw(mouth1, 0.3);
+draw(mouth2, 0.3);
+draw(mouth3, 0.3);
+}
+
+par {
+draw(wL1, 0.45);
+draw(wL2, 0.45);
+draw(wL3, 0.45);
+draw(wR1, 0.45);
+draw(wR2, 0.45);
+draw(wR3, 0.45);
+}
+say(cap, "Tiny nose, bright eyes, and long whiskers.", 0.7);
+
+par {
+pulse(nose, 0.5);
+flash(glintL, cyan);
+flash(glintR, cyan);
+}
+say(cap, "Portrait complete.", 0.7);
+wait(1.0);

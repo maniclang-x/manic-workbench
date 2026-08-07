@@ -1,0 +1,222 @@
+title("Smart Watch Portrait");
+canvas("16:9");
+
+let wx = cx + 170;
+let wy = cy + 10;
+let a = 14;
+
+rect(bg, (cx, cy), w, h);
+filled(bg);
+hue(bg, 35, 0.18, 0.35);
+opacity(bg, 0.65);
+
+rect(laptop, (cx + 250, cy - 210), 470, 190);
+filled(laptop);
+color(laptop, void);
+opacity(laptop, 0.55);
+hidden(laptop);
+
+rect(tableGlow, (cx + 230, cy + 230), 560, 220);
+filled(tableGlow);
+hue(tableGlow, 45, 0.25, 0.55);
+opacity(tableGlow, 0.22);
+hidden(tableGlow);
+
+ellipse(palm, (cx - 130, cy + 115), 340, 145, 8);
+filled(palm);
+hue(palm, 25, 0.55, 0.58);
+opacity(palm, 0.9);
+hidden(palm);
+
+ellipse(thumb, (cx + 95, cy + 150), 120, 45, -10);
+filled(thumb);
+hue(thumb, 24, 0.55, 0.6);
+opacity(thumb, 0.92);
+hidden(thumb);
+
+ellipse(finger1, (cx - 50, cy - 25), 285, 70, 5);
+ellipse(finger2, (cx - 45, cy + 45), 300, 72, 3);
+ellipse(finger3, (cx - 35, cy + 115), 270, 67, 0);
+filled(finger1);
+filled(finger2);
+filled(finger3);
+hue(finger1, 25, 0.55, 0.62);
+hue(finger2, 25, 0.55, 0.59);
+hue(finger3, 25, 0.55, 0.56);
+opacity(finger1, 0.82);
+opacity(finger2, 0.85);
+opacity(finger3, 0.86);
+hidden(finger1);
+hidden(finger2);
+hidden(finger3);
+
+rect(strapTop, (wx + 72, wy - 218), 112, 205);
+filled(strapTop);
+color(strapTop, dim);
+rot(strapTop, a);
+hidden(strapTop);
+
+rect(strapBot, (wx - 40, wy + 236), 118, 230);
+filled(strapBot);
+color(strapBot, void);
+opacity(strapBot, 0.88);
+rot(strapBot, a);
+hidden(strapBot);
+
+rect(bezel, (wx, wy), 245, 340);
+filled(bezel);
+color(bezel, dim);
+rot(bezel, a);
+hidden(bezel);
+
+rect(screen, (wx, wy), 215, 300);
+filled(screen);
+color(screen, void);
+rot(screen, a);
+hidden(screen);
+
+rect(edgeLight, (wx - 92, wy - 38), 10, 215);
+filled(edgeLight);
+color(edgeLight, fg);
+opacity(edgeLight, 0.8);
+rot(edgeLight, a);
+hidden(edgeLight);
+
+text(date, (wx + 6, wy - 105), "Wed Jul 08");
+display(date);
+color(date, lime);
+size(date, 22);
+rot(date, a);
+hidden(date);
+
+text(t10, (wx - 13, wy - 28), "10");
+display(t10);
+color(t10, lime);
+size(t10, 82);
+bold(t10);
+rot(t10, a);
+hidden(t10);
+
+text(t47, (wx + 11, wy + 55), "47");
+display(t47);
+color(t47, fg);
+size(t47, 82);
+bold(t47);
+rot(t47, a);
+hidden(t47);
+
+text(stepIcon, (wx - 65, wy + 132), "shoe");
+text(heartIcon, (wx + 8, wy + 143), "heart");
+text(batIcon, (wx + 82, wy + 154), "bat");
+display(stepIcon);
+display(heartIcon);
+display(batIcon);
+color(stepIcon, lime);
+color(heartIcon, lime);
+color(batIcon, lime);
+size(stepIcon, 15);
+size(heartIcon, 15);
+size(batIcon, 15);
+rot(stepIcon, a);
+rot(heartIcon, a);
+rot(batIcon, a);
+hidden(stepIcon);
+hidden(heartIcon);
+hidden(batIcon);
+
+text(steps, (wx - 72, wy + 160), "0");
+text(hr, (wx + 6, wy + 172), "73");
+text(battery, (wx + 83, wy + 183), "80%");
+display(steps);
+display(hr);
+display(battery);
+color(steps, lime);
+color(hr, lime);
+color(battery, lime);
+size(steps, 19);
+size(hr, 19);
+size(battery, 19);
+rot(steps, a);
+rot(hr, a);
+rot(battery, a);
+hidden(steps);
+hidden(hr);
+hidden(battery);
+
+line(glint1, (wx - 105, wy - 125), (wx - 135, wy + 80));
+line(glint2, (wx - 82, wy - 125), (wx - 113, wy + 80));
+color(glint1, fg);
+color(glint2, cyan);
+stroke(glint1, 5);
+stroke(glint2, 2);
+opacity(glint1, 0.75);
+opacity(glint2, 0.6);
+untraced(glint1);
+untraced(glint2);
+
+text(head, (cx, 58), "smart watch close-up");
+display(head);
+color(head, cyan);
+size(head, 32);
+hidden(head);
+
+text(cap, (cx, h - 48), "");
+display(cap);
+color(cap, fg);
+size(cap, 21);
+hidden(cap);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "A stylized watch face from the photo.", 0.7);
+
+par {
+show(laptop, 0.6);
+show(tableGlow, 0.6);
+}
+
+par {
+show(palm, 0.55);
+show(finger1, 0.55);
+show(finger2, 0.55);
+show(finger3, 0.55);
+show(thumb, 0.55);
+}
+say(cap, "The hand frames the small device.", 0.6);
+
+par {
+show(strapTop, 0.45);
+show(strapBot, 0.45);
+show(bezel, 0.45);
+}
+show(screen, 0.35);
+say(cap, "A dark body, black strap, and bright glass screen.", 0.7);
+
+par {
+draw(glint1, 0.55);
+draw(glint2, 0.55);
+show(edgeLight, 0.35);
+}
+flash(edgeLight, cyan);
+
+stagger(0.08) {
+show(date, 0.25);
+show(t10, 0.25);
+show(t47, 0.25);
+show(stepIcon, 0.2);
+show(heartIcon, 0.2);
+show(batIcon, 0.2);
+show(steps, 0.2);
+show(hr, 0.2);
+show(battery, 0.2);
+}
+say(cap, "The neon green display shows time and health stats.", 0.7);
+
+par {
+pulse(t10, 0.45);
+pulse(t47, 0.45);
+flash(heartIcon, magenta);
+}
+say(cap, "10:47, heart rate 73, battery 80 percent.", 0.7);
+
+wait(1.0);

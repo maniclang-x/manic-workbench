@@ -1,0 +1,69 @@
+// art-rakkan — E.C.H (Eiichi Ishii)'s "dailycoding 20260803" reimagined as ONE
+// per-pixel `shader`. The p5 original scatters ~100 lens/eye modules (parallel
+// bowed béziers inside a rounded shape, some with a soft-shadow glow) across a
+// white field and stamps a red rakkan (落款, artist's seal) in the corner. manic
+// can't draw béziers per pixel — but the LOOK is an SDF field: each module is a
+// `sdvesica` lens filled with bowed stripe-veins, scattered by a per-cell hash,
+// a few carrying a `gaussian` glow; the seal is a `sdroundbox` with white marks.
+// Pure in (u,v,t) — the whole plate scrubs and records; a slow breath keeps it live.
+//
+//   manic examples/art-rakkan.manic
+title("Rakkan — E.C.H generative art, reimagined per-pixel");
+canvas("1:1");
+template("black");
+
+shader(art) {
+  // --- paper ground (warm off-white with a fine tooth) ---
+  let grain = rand2(floor(u * 540.0), floor(v * 540.0));
+  let paper = 0.95 - 0.035 * grain;
+
+  // --- scattered lens modules: tile into cells, hash each cell ---
+  let C = 0.135;                      // cell size
+  let gx = floor(u / C);
+  let gy = floor(v / C);
+  let present = step(0.42, rand2(gx, gy));           // ~58% of cells carry a module
+  let lu = fract(u / C) - 0.5;                        // local coord in the cell
+  let lv = fract(v / C) - 0.5;
+  let jx = (rand2(gx + 3.3, gy) - 0.5) * 0.34;        // jitter the centre
+  let jy = (rand2(gx, gy + 4.7) - 0.5) * 0.34;
+  let ex = lu - jx;
+  let ey = lv - jy;
+  let flip = step(0.5, rand2(gx + 9.1, gy + 2.2));    // 90° orientation
+  let ax = mix(ex, ey, flip);
+  let ay = mix(ey, ex, flip);
+  let sz = 0.30 + 0.12 * rand2(gx + 6.0, gy + 6.0);   // half-size (fits the cell)
+
+  // the lens (vesica) + bowed parallel veins inside it
+  let d = sdvesica(ax / sz, ay / sz, 1.0, 0.62);
+  let inside = step(d, 0.0);
+  let nv = 4.0 + floor(4.0 * rand2(gx + 1.1, gy + 1.1));   // 4..7 veins
+  let bow = ay / sz + 0.32 * (ax / sz) * (ax / sz);        // bow toward centre
+  let stripe = abs(fract(bow * nv) - 0.5);
+  let veins = inside * smoothstep(0.14, 0.05, stripe);
+  let outline = smoothstep(0.04, 0.0, abs(d));
+  let ink = present * clamp(outline + veins, 0.0, 1.0);
+
+  // --- soft glow dot on a few modules (the p5 shadow-blur ellipse) ---
+  let glowon = present * step(0.82, rand2(gx + 13.0, gy + 11.0));
+  let pulse = 0.7 + 0.3 * sin(t * 0.8 + gx + gy);
+  let glow = glowon * gaussian(hypot(lu, lv), 0.15) * 0.6 * pulse;  // tight round soft dot
+
+  // --- compose the greyscale field: paper, dark ink, soft glow ---
+  let field = clamp(mix(paper, 0.07, ink) + glow, 0.0, 1.0);
+
+  // --- red rakkan seal, bottom-left (rounded stone + white seal-script marks) ---
+  let sx = u - 0.135;
+  let sy = v - 0.85;
+  let body = step(sdroundbox(sx, sy, 0.05, 0.08, 0.014), 0.0);
+  let inner = step(sdroundbox(sx, sy, 0.035, 0.065, 0.006), 0.0);   // inset mark area (stone border)
+  let vb = step(0.28, abs(fract(sx * 42.0) - 0.5));                 // vertical seal strokes
+  let hb = step(0.30, abs(fract(sy * 30.0) - 0.5));                 // broken into a seal-script lattice
+  let marks = inner * vb * hb;
+
+  // red = #e2041b ≈ (0.886, 0.016, 0.106); marks paint the paper-white back in
+  let r = mix(field, mix(0.886, paper, marks), body);
+  let g = mix(field, mix(0.016, paper, marks), body);
+  let b = mix(field, mix(0.106, paper, marks), body);
+}
+
+wait(12);

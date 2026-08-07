@@ -1,0 +1,171 @@
+title("Binary Search");
+canvas("16:9");
+
+let cw = 78;
+let ch = 72;
+let x0 = cx - 4*cw;
+let ay = cy + 20;
+
+text(head, (cx, 65), "binary search");
+display(head);
+color(head, cyan);
+size(head, 38);
+hidden(head);
+
+text(cap, (cx, h - 55), "");
+display(cap);
+color(cap, fg);
+size(cap, 22);
+hidden(cap);
+
+text(target, (cx, 125), "target = 13");
+display(target);
+color(target, magenta);
+size(target, 32);
+hidden(target);
+
+array(a, "1 3 5 7 9 11 13 15 17", (cx, ay), cw, ch);
+hidden(a.cells);
+hidden(a.boxes);
+color(a.cells, fg);
+
+rect(range0, (cx, ay), 9*cw, ch + 18);
+outline(range0, cyan);
+stroke(range0, 4);
+hidden(range0);
+
+rect(range1, (x0 + 6.5cw, ay), 4cw, ch + 18);
+outline(range1, cyan);
+stroke(range1, 4);
+hidden(range1);
+
+rect(foundBox, (x0 + 6*cw, ay), cw, ch + 18);
+outline(foundBox, lime);
+stroke(foundBox, 5);
+glow(foundBox, 10);
+hidden(foundBox);
+
+arrow(probe0, (x0 + 4cw, ay - 135), (x0 + 4cw, ay - 55));
+arrow(probe1, (x0 + 6cw, ay - 135), (x0 + 6cw, ay - 55));
+color(probe0, magenta);
+color(probe1, magenta);
+stroke(probe0, 5);
+stroke(probe1, 5);
+glow(probe0, 8);
+glow(probe1, 8);
+untraced(probe0);
+untraced(probe1);
+
+text(mid0, (x0 + 4cw, ay - 165), "mid");
+text(mid1, (x0 + 6cw, ay - 165), "mid");
+display(mid0);
+display(mid1);
+color(mid0, magenta);
+color(mid1, magenta);
+size(mid0, 24);
+size(mid1, 24);
+hidden(mid0);
+hidden(mid1);
+
+text(low0, (x0, ay + 82), "low");
+text(high0, (x0 + 8cw, ay + 82), "high");
+text(low1, (x0 + 5cw, ay + 82), "low");
+text(high1, (x0 + 8*cw, ay + 82), "high");
+display(low0);
+display(high0);
+display(low1);
+display(high1);
+color(low0, cyan);
+color(high0, cyan);
+color(low1, cyan);
+color(high1, cyan);
+size(low0, 20);
+size(high0, 20);
+size(low1, 20);
+size(high1, 20);
+hidden(low0);
+hidden(high0);
+hidden(low1);
+hidden(high1);
+
+text(step, (cx, ay + 150), "");
+display(step);
+color(step, fg);
+size(step, 25);
+hidden(step);
+
+text(done, (cx, ay + 225), "found 13 at index 6");
+display(done);
+color(done, lime);
+size(done, 34);
+hidden(done);
+
+show(head, 0.5);
+show(cap, 0.3);
+say(cap, "Binary search works only on a sorted array.", 0.7);
+
+par {
+show(a.boxes, 0.5);
+show(a.cells, 0.5);
+show(target, 0.5);
+show(step, 0.3);
+}
+say(cap, "We will search for 13.", 0.6);
+
+par {
+show(range0, 0.4);
+show(low0, 0.3);
+show(high0, 0.3);
+}
+say(step, "search range: index 0 to 8", 0.35);
+say(cap, "Start with the whole array.", 0.6);
+
+par {
+draw(probe0, 0.45);
+show(mid0, 0.3);
+flash(a.c4, magenta);
+}
+say(step, "middle value is 9", 0.35);
+say(cap, "The arrow points to the value being checked.", 0.7);
+
+say(step, "9 < 13, so discard the left half", 0.4);
+par {
+fade(range0, 0.35);
+fade(low0, 0.35);
+fade(high0, 0.35);
+fade(probe0, 0.35);
+fade(mid0, 0.35);
+flash(a.c0, dim);
+flash(a.c1, dim);
+flash(a.c2, dim);
+flash(a.c3, dim);
+flash(a.c4, dim);
+}
+say(cap, "Since 9 is too small, the target must be to the right.", 0.8);
+
+par {
+show(range1, 0.4);
+show(low1, 0.3);
+show(high1, 0.3);
+}
+say(step, "new range: index 5 to 8", 0.35);
+
+par {
+draw(probe1, 0.45);
+show(mid1, 0.3);
+flash(a.c6, magenta);
+}
+say(step, "middle value is 13", 0.35);
+say(cap, "Check the middle of the remaining range.", 0.6);
+
+say(step, "13 == 13, target found", 0.4);
+par {
+show(foundBox, 0.4);
+flash(a.c6, lime);
+pulse(a.c6, 0.6);
+}
+show(done, 0.5);
+pulse(done, 0.7);
+say(cap, "Binary search found the target in just two checks.", 0.8);
+
+wait(1.0);

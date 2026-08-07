@@ -1,0 +1,51 @@
+// Native bounded volume sampling extracts the implicit surface directly.
+
+title("Drawing an Implicit Surface");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_3D tagline=Equations_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=cyan secondary=magenta footer=compact cta=Make_math_spatial safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Turn_Equations_Into_Worlds cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080;
+text(kicker,(cx,h*0.10),"MANIC · IMPLICIT TO PARAMETRIC");
+text(head,(cx,h*0.17),"How do we draw x² + y² − z² = 1?");
+equation(eq,(cx,h*0.30),`x^2+y^2-z^2=1`,31*u);
+text(caption,(cx,h*0.82),"Choose coordinates that make the identity true automatically.");
+size(kicker,20*u); bold(kicker); color(kicker,cyan);
+size(head,26*u); bold(head); wrap(head,w*0.76);
+size(caption,20*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+implicit3(shell,"x*x+y*y-z*z",(-2.4,2.4),(-2.4,2.4),(-2.1,2.1),1,26);
+color(shell,cyan); opacity(shell,0.72); finish3(shell,"shading=smooth material=glass depth=0.75");
+hidden(shell);
+camera3((17,17,12),(0,0,0),48,perspective);
+hidden(kicker); hidden(head); hidden(eq); hidden(caption);
+
+step("pose") { par { show(kicker,0.3); show(head,0.45); show(eq,0.45); show(caption,0.35); } }
+wait(0.85);
+step("parameterize") {
+  rewrite(eq,`\begin{aligned}x&=\cosh u\cos v\\y&=\cosh u\sin v\\z&=\sinh u\end{aligned}`,0.85,smooth);
+  say(caption,"Because cosh²u − sinh²u = 1, every generated point satisfies the equation.",0.45,smooth);
+}
+wait(0.8);
+step("verify before drawing") {
+  par {
+    pulse(eq,0.80);
+    say(caption,"Substitution cancels cos²v + sin²v and leaves cosh²u − sinh²u = 1.",0.65,smooth);
+  }
+}
+wait(1.0);
+step("reveal the surface") {
+  par { show(shell,1.2,smooth); orbit3(70,14,23,2.8,smooth); say(caption,"Manic samples the bounded volume and extracts exactly where the field equals one.",0.45); }
+}
+wait(1.0);
+step("read the two directions") {
+  say(caption,"The angle v travels around the waist while u moves upward and outward along the surface.",0.60,smooth);
+}
+wait(0.95);
+step("solve") { par { pulse(shell,0.8); say(head,"The identity is the geometry.",0.4,smooth); } }
+wait(1.25);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(eq,0.3); fade(caption,0.3); fade(shell,0.45); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);

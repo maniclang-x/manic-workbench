@@ -1,0 +1,58 @@
+// Existing-Manic treatment of fractales/fig0080.asy.
+// Instead of a raster, solve the defining membership test for c=1.
+
+title("A Mandelbrot Escape Test");
+canvas("9:16");
+template("black");
+creator(me,"@anish2good name=Manic_Math tagline=Complexity_made_visible yt=zarigatongy x=@anish2good web=8gwifi.org/manic accent=magenta secondary=cyan footer=compact cta=Test_another_point safe=clean");
+socials(me);
+watermark(mark,(w*0.16,h*0.055),"Made With Manic");
+endcard(me,"title=Animate_The_Definition cta=8gwifi.org/manic");
+
+let u=(w+h-abs(w-h))/1080;
+text(kicker,(cx,h*0.10),"MANDELBROT · ESCAPE TEST");
+text(head,(cx,h*0.17),"Does c = 1 belong?");
+equation(rule,(cx,h*0.25),`z_{n+1}=z_n^2+c,\qquad z_0=0`,31*u);
+text(caption,(cx,h*0.76),"A point belongs only if its orbit stays bounded forever.");
+size(kicker,20*u); bold(kicker); color(kicker,magenta);
+size(head,28*u); bold(head); wrap(head,w*0.76);
+size(caption,20*u); bold(caption); wrap(caption,w*0.74); color(caption,dim);
+
+line(axis,(w*0.14,h*0.51),(w*0.86,h*0.51)); color(axis,dim);
+dot(z0,(w*0.20,h*0.51),10*u); dot(z1,(w*0.34,h*0.51),10*u);
+dot(z2,(w*0.48,h*0.51),10*u); dot(z3,(w*0.78,h*0.51),12*u);
+text(l0,(w*0.20,h*0.56),"0"); text(l1,(w*0.34,h*0.56),"1");
+text(l2,(w*0.48,h*0.56),"2"); text(l3,(w*0.78,h*0.56),"5");
+tag(z0,orbit); tag(z1,orbit); tag(z2,orbit); tag(z3,orbit);
+tag(l0,orbit); tag(l1,orbit); tag(l2,orbit); tag(l3,orbit);
+color(z0,cyan); color(z1,cyan); color(z2,gold); color(z3,magenta);
+hidden(orbit); untraced(axis); hidden(kicker); hidden(head); hidden(rule); hidden(caption);
+
+step("state the problem") { par { show(kicker,0.3); show(head,0.4); show(rule,0.5); show(caption,0.35); draw(axis,0.65,smooth); } }
+wait(0.85);
+step("iterate") {
+  seq {
+    par { show(z0,0.2); show(l0,0.2); say(caption,"Start at zero.",0.3); }
+    par { show(z1,0.25); show(l1,0.25); say(caption,"z₁ = 0² + 1 = 1",0.3); }
+    par { show(z2,0.25); show(l2,0.25); say(caption,"z₂ = 1² + 1 = 2",0.3); }
+    par { show(z3,0.3); show(l3,0.3); say(caption,"z₃ = 2² + 1 = 5. The orbit has escaped beyond radius 2.",0.4); }
+  }
+}
+wait(0.9);
+step("apply the escape rule") {
+  par {
+    pulse(z3,0.80);
+    say(caption,"Once |z| exceeds 2, repeated squaring can never bring this orbit back to a bounded region.",0.60,smooth);
+  }
+}
+wait(1.0);
+step("interpret the test") {
+  say(rule,"One escaped orbit is enough to reject the point c = 1.",0.60,smooth);
+}
+wait(0.9);
+step("answer") {
+  par { say(head,"No — c = 1 escapes.",0.45,smooth); rewrite(rule,`0\to1\to2\to5\to26\to\cdots`,0.8,smooth); pulse(z3,0.7); }
+}
+wait(1.3);
+step("cta") { par { fade(kicker,0.3); fade(head,0.3); fade(rule,0.3); fade(caption,0.3); fade(axis,0.3); fade(orbit,0.35); fade(me.footer,0.3); show(me.endcard,0.6); } }
+wait(2.2);
