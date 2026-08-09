@@ -32,6 +32,8 @@ export interface AgentRunInput {
   model?: string;
   /** Per-run reasoning-effort override chosen in the chat composer. */
   reasoning?: "none" | "low" | "medium" | "high" | "xhigh";
+  /** Per-run OpenAI-compatible endpoint override; "" = official api.openai.com. */
+  baseUrl?: string;
 }
 
 export interface AgentEvent {

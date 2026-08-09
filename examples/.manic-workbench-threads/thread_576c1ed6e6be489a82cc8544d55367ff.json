@@ -1,0 +1,29 @@
+{
+  "protocolVersion": 1,
+  "threadId": "thread_576c1ed6e6be489a82cc8544d55367ff",
+  "target": {
+    "kind": "draft",
+    "draftName": "ollama-story.manic"
+  },
+  "turns": [
+    {
+      "runId": "agent_pending_1786263525274",
+      "userMessage": "show me a sampel manic demo ",
+      "proposalSummary": "The model proposed ollama_story.manic, but this run is restricted to ollama-story.manic.",
+      "status": "failed",
+      "appliedRevision": null,
+      "at": 1786263753228
+    },
+    {
+      "runId": "agent_pending_1786263872403",
+      "userMessage": "show a blank canvas ",
+      "proposalSummary": "The local model returned an invalid structured candidate.",
+      "status": "failed",
+      "appliedRevision": null,
+      "at": 1786264130357
+    }
+  ],
+  "lastAppliedRevision": null,
+  "createdAt": 1786263525265,
+  "updatedAt": 1786264130360
+}

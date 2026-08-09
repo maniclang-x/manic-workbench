@@ -49,6 +49,8 @@ export interface WorkbenchSettings {
     provider: AiProvider;
     model: string;
     reasoning: AiReasoningEffort;
+    /** OpenAI-compatible endpoint (e.g. http://localhost:11434/v1 for Ollama). Empty = api.openai.com. */
+    baseUrl: string;
     customModels: Record<AiProviderId, string[]>;
   };
 }
@@ -63,6 +65,7 @@ export const defaultSettings: WorkbenchSettings = {
     provider: "none",
     model: DEFAULT_AI_MODELS.openai,
     reasoning: "none",
+    baseUrl: "",
     customModels: { openai: [], anthropic: [] },
   },
 };
@@ -135,9 +138,29 @@ export function validateSettings(input: unknown): WorkbenchSettings {
       provider,
       model: normalizeModelChoice(model, provider, customModels),
       reasoning: enumValue(ai.reasoning, AI_REASONING_EFFORTS, "ai.reasoning", "none"),
+      baseUrl: normalizeAiBaseUrl(ai.baseUrl),
       customModels,
     },
   };
+}
+
+export function normalizeAiBaseUrl(input: unknown): string {
+  if (input === undefined) return "";
+  if (typeof input !== "string") throw new Error("ai.baseUrl must be a string.");
+  let value = input.trim().replace(/\/+$/u, "");
+  if (!value) return "";
+  if (value.length > 2048) throw new Error("ai.baseUrl is too long.");
+  // Accept what people actually type: "127.0.0.1:11434" gets a scheme, and a
+  // bare host gets the /v1 path every OpenAI-compatible server serves.
+  if (!/^[a-z][a-z0-9+.-]*:\/\//iu.test(value)) value = `http://${value}`;
+  let url: URL;
+  try { url = new URL(value); }
+  catch { throw new Error("ai.baseUrl must be a valid http(s) URL, e.g. http://localhost:11434/v1."); }
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error("ai.baseUrl must use http or https.");
+  }
+  if (url.pathname === "/" || url.pathname === "") value = `${value}/v1`;
+  return value;
 }
 
 function validateEngineEnv(input: unknown): Record<string, string> {

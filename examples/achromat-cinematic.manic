@@ -10,6 +10,7 @@
 title("The Achromatic Doublet");
 canvas("16:9");
 
+
 achromat(ac, (540, 360));
 
 // bracket the axial gap between the two foci (fades as they merge)

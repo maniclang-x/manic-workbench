@@ -10,5 +10,7 @@ coverage/
 .cursor/
 .manic-workbench-session
 .manic-workbench-threads/*
+examples/.manic-workbench-threads
+examples/.manic-workbench-threads/*
 PLAN.md
 ai-story.manic

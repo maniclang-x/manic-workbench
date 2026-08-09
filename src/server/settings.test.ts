@@ -31,6 +31,24 @@ describe("Workbench settings", () => {
     expect(() => validateSettings({ ai: { customModels: { openai: ["bad model"] } } })).toThrow("invalid model id");
   });
 
+  it("accepts an OpenAI-compatible base URL and normalizes trailing slashes", () => {
+    expect(validateSettings({ ai: { baseUrl: "http://localhost:11434/v1/" } }).ai.baseUrl).toBe("http://localhost:11434/v1");
+    expect(validateSettings({ ai: { baseUrl: "  " } }).ai.baseUrl).toBe("");
+    expect(validateSettings({ ai: { baseUrl: "https://vllm.internal:8000/v1" } }).ai.baseUrl).toBe("https://vllm.internal:8000/v1");
+  });
+
+  it("normalizes bare hosts the way people type them", () => {
+    expect(validateSettings({ ai: { baseUrl: "127.0.0.1:11434" } }).ai.baseUrl).toBe("http://127.0.0.1:11434/v1");
+    expect(validateSettings({ ai: { baseUrl: "localhost:11434/v1" } }).ai.baseUrl).toBe("http://localhost:11434/v1");
+    expect(validateSettings({ ai: { baseUrl: "http://localhost:1234" } }).ai.baseUrl).toBe("http://localhost:1234/v1");
+    expect(validateSettings({ ai: { baseUrl: "https://gateway.example.com/openai" } }).ai.baseUrl).toBe("https://gateway.example.com/openai");
+  });
+
+  it("rejects base URLs that are not http(s)", () => {
+    expect(() => validateSettings({ ai: { baseUrl: "not a url" } })).toThrow("valid http(s) URL");
+    expect(() => validateSettings({ ai: { baseUrl: "ftp://host/v1" } })).toThrow("http or https");
+  });
+
   it("writes user settings privately and reads them back", async () => {
     const directory = await mkdtemp(join(tmpdir(), "manic-workbench-settings-"));
     const path = join(directory, "nested", "settings.json");

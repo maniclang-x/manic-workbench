@@ -56,6 +56,8 @@ export interface WorkbenchSettings {
     provider: AiProvider;
     model: string;
     reasoning: AiReasoningEffort;
+    /** OpenAI-compatible endpoint (e.g. http://localhost:11434/v1 for Ollama). Empty = api.openai.com. */
+    baseUrl: string;
     customModels: Record<AiProviderId, string[]>;
   };
 }

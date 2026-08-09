@@ -1,5 +1,8 @@
 import Editor, { loader } from "@monaco-editor/react";
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+// The full monaco entry (not esm/vs/editor/editor.api) — the slim API ships no
+// editor contributions, which silently removes the suggest widget: completion
+// providers run but nothing can render their items.
+import * as monaco from "monaco-editor";
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest, type EngineCheckResult, type RenderFormat, type RenderJob, type WorkbenchSettings, type WorkspaceFile, type WorkspaceFileSummary } from "./api";
@@ -507,7 +510,7 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
   return (
     <div className="workspace-view">
       <header className="workspace-header">
-        <div><span className="eyebrow">PROJECT · {projectName.toUpperCase()}</span><h1>Write with Manic.</h1><p>Open a story, edit it, and let Workbench save safely.</p></div>
+        <div><span className="eyebrow">PROJECT · {projectName.toUpperCase()}</span><h1>Write with Manic.</h1></div>
         <div className="editor-actions">
           <span className={`language-label ${languageState}`}>{languageState === "ready" ? `Issues · ${diagnosticCount}` : languageState === "fallback" ? "Issues · basic check" : "Checking issues…"}</span>
           <button className="autofix-button" onClick={() => void checkWithManic()} disabled={!active || checkingEngine}>{checkingEngine ? "Checking…" : "Check with Manic"}</button>
@@ -553,7 +556,29 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
                 value={active.content}
                 onChange={(value) => editFile(value ?? "")}
                 onMount={(editor) => { editorRef.current = editor; setEditorMounted(true); }}
-                options={{ automaticLayout: true, minimap: { enabled: false }, fontSize: 14, lineHeight: 22, padding: { top: 14 }, scrollBeyondLastLine: false, wordWrap: "on", tabSize: 2 }}
+                options={{
+                  automaticLayout: true,
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  lineHeight: 22,
+                  fontLigatures: true,
+                  padding: { top: 16, bottom: 12 },
+                  scrollBeyondLastLine: false,
+                  wordWrap: "on",
+                  tabSize: 2,
+                  smoothScrolling: true,
+                  cursorBlinking: "smooth",
+                  cursorSmoothCaretAnimation: "on",
+                  renderLineHighlight: "all",
+                  bracketPairColorization: { enabled: true },
+                  guides: { bracketPairs: "active", indentation: true },
+                  scrollbar: { verticalScrollbarSize: 10, horizontalScrollbarSize: 10 },
+                  quickSuggestions: { other: "on", comments: "off", strings: "on" },
+                  quickSuggestionsDelay: 10,
+                  suggestOnTriggerCharacters: true,
+                  wordBasedSuggestions: "off",
+                  "semanticHighlighting.enabled": true,
+                }}
               />
             </div>
             {diagnostics.length > 0 && <section className="diagnostics-panel" aria-label="Manic problems">

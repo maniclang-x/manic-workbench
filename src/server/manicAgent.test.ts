@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { AgentRunManager } from "./agentRuns.js";
 import {
   AnthropicProvider,
+  OpenAiCompatibleProvider,
   OpenAiProvider,
   runManicAgent,
   type ModelProvider,
@@ -86,6 +87,60 @@ describe("runManicAgent", () => {
     expect(result.status).toBe("ready");
     expect(result.validation.attempts).toBe(2);
     expect(provider.requests[1]?.diagnostics).toBe("exact diagnostic line");
+  });
+
+  it("repairs locally via autofix without a second model call when the fix passes check", async () => {
+    const workspace = await mkdtemp(join(tmpdir(), "manic-agent-"));
+    const provider = new ScriptedProvider([candidate("a.manic", "broken")]);
+    const events: string[] = [];
+    const result = await runManicAgent({
+      workspace,
+      settings: defaultSettings,
+      prompt,
+      provider,
+      input: { message: "make it", intent: "create", path: "", newPath: "a.manic", images: [] },
+      check: async (_workspace, file) => {
+        const content = await readFile(file, "utf8");
+        return content.includes("fixed")
+          ? { ok: true, exitCode: 0, output: "ok" }
+          : { ok: false, exitCode: 1, output: "mechanical slip" };
+      },
+      autofix: async (content) => ({ code: content.replace("broken", "fixed"), fixed: 1 }),
+      onEvent: (event) => events.push(event.message),
+    });
+    expect(result.status).toBe("ready");
+    expect(provider.calls).toBe(1);
+    expect(result.proposal?.content).toContain("fixed");
+    expect(result.validation.attempts).toBe(1);
+    expect(events.some((message) => message.includes("Auto-fixed 1 slip locally"))).toBe(true);
+  });
+
+  it("hands the autofixed candidate to the model when local fixes are not enough", async () => {
+    const workspace = await mkdtemp(join(tmpdir(), "manic-agent-"));
+    const provider = new ScriptedProvider([
+      candidate("a.manic", "broken"),
+      candidate("a.manic", "repaired"),
+    ]);
+    const result = await runManicAgent({
+      workspace,
+      settings: defaultSettings,
+      prompt,
+      provider,
+      input: { message: "make it", intent: "create", path: "", newPath: "a.manic", images: [] },
+      maxRepairAttempts: 2,
+      check: async (_workspace, file) => {
+        const content = await readFile(file, "utf8");
+        return content.includes("repaired")
+          ? { ok: true, exitCode: 0, output: "ok" }
+          : { ok: false, exitCode: 1, output: `still broken: ${content.trim()}` };
+      },
+      autofix: async (content) => ({ code: content.replace("broken", "half-fixed"), fixed: 1 }),
+    });
+    expect(result.status).toBe("ready");
+    expect(provider.calls).toBe(2);
+    // The model's repair round saw the locally improved candidate + its diagnostics.
+    expect(provider.requests[1]?.previousCandidate?.content).toContain("half-fixed");
+    expect(provider.requests[1]?.diagnostics).toContain("half-fixed");
   });
 
   it("stops at the repair limit with a failed proposal the user can inspect", async () => {
@@ -234,6 +289,42 @@ describe("provider adapters", () => {
     // Reasoning "none" must omit thinking/effort so older models keep working.
     expect(body.thinking).toBeUndefined();
     expect(body.output_config.effort).toBeUndefined();
+  });
+
+  it("sends OpenAI-compatible chat completions without requiring an API key", async () => {
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      choices: [{ message: { content: JSON.stringify({
+        operation: "create", path: "x.manic", message: "ok", content: 'title("X");\n',
+      }) } }],
+      usage: { prompt_tokens: 12, completion_tokens: 4, total_tokens: 16 },
+    }), { status: 200 }));
+    const provider = new OpenAiCompatibleProvider("http://localhost:11434/v1/", "", "qwen2.5-coder:14b", fetcher as unknown as typeof fetch);
+    const result = await provider.generate(sampleRequest());
+    expect(result.candidate.path).toBe("x.manic");
+    expect(result.usage.totalTokens).toBe(16);
+    expect(fetcher.mock.calls[0]?.[0]).toBe("http://localhost:11434/v1/chat/completions");
+    const init = fetcher.mock.calls[0]?.[1] as RequestInit;
+    expect(init.headers).not.toHaveProperty("Authorization");
+    const body = JSON.parse(String(init.body));
+    expect(body.model).toBe("qwen2.5-coder:14b");
+    expect(body.messages[0].role).toBe("system");
+    expect(typeof body.messages[1].content).toBe("string");
+    expect(body.response_format.json_schema.schema.required).toContain("content");
+  });
+
+  it("tolerates local models that fence their JSON and sends the key when configured", async () => {
+    const fenced = "```json\n" + JSON.stringify({
+      operation: "create", path: "x.manic", message: "ok", content: 'title("X");\n',
+    }) + "\n```";
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({
+      choices: [{ message: { content: fenced } }],
+    }), { status: 200 }));
+    const provider = new OpenAiCompatibleProvider("https://proxy.example/v1", "sk-proxy-key-1234567890", "gpt-4o", fetcher as unknown as typeof fetch);
+    const result = await provider.generate(sampleRequest());
+    expect(result.candidate.content).toContain("X");
+    expect(result.usage.totalTokens).toBeNull();
+    const init = fetcher.mock.calls[0]?.[1] as RequestInit;
+    expect(init.headers).toMatchObject({ Authorization: "Bearer sk-proxy-key-1234567890" });
   });
 
   it("maps Anthropic reasoning levels to adaptive thinking and output effort", async () => {

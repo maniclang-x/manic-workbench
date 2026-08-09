@@ -5,13 +5,14 @@ import { extname, relative, resolve } from "node:path";
 import { Readable } from "node:stream";
 import { Hono } from "hono";
 import type { Diagnostics } from "./diagnostics.js";
-import type { SettingsStore, WorkbenchSettings } from "./settings.js";
+import { normalizeAiBaseUrl, type SettingsStore, type WorkbenchSettings } from "./settings.js";
 import { RenderJobManager } from "./renderJobs.js";
 import { runEngineCheck } from "./engineCheck.js";
 import { createAiSecretStore, type AiSecretStore } from "./aiSecrets.js";
 import { AgentRunManager } from "./agentRuns.js";
+import { createCandidateFixer, type CandidateFixer } from "./candidateFix.js";
 import { getEngineInstallPlan, installManicEngine, type EngineInstallMethod } from "./engineInstall.js";
-import { AnthropicProvider, OpenAiProvider, type AgentRunInput, type EngineChecker, type ModelProvider, type ThreadTarget } from "./manicAgent.js";
+import { AnthropicProvider, OpenAiCompatibleProvider, OpenAiProvider, type AgentRunInput, type EngineChecker, type ModelProvider, type ThreadTarget } from "./manicAgent.js";
 import {
   appendTurn, buildConversation, createThread, getThread, listThreads, recordApply, removeThread, ThreadNotFoundError,
 } from "./agentThreads.js";
@@ -34,7 +35,10 @@ export interface WorkbenchContext {
   promptStore?: PromptStore;
   /** Test seam for agent-run candidate validation; defaults to the installed engine. */
   engineCheck?: EngineChecker;
+  /** Test seam for the local candidate autofix; defaults to engine `manic fix` with WASM fallback. */
+  candidateAutofix?: CandidateFixer;
   openAiProvider?(apiKey: string, model: string, reasoning: WorkbenchSettings["ai"]["reasoning"]): ModelProvider;
+  openAiCompatibleProvider?(baseUrl: string, apiKey: string, model: string): ModelProvider;
   anthropicProvider?(apiKey: string, model: string, reasoning: WorkbenchSettings["ai"]["reasoning"]): ModelProvider;
 }
 
@@ -45,6 +49,7 @@ export function createApp(context: WorkbenchContext): Hono {
   const agentRuns = new AgentRunManager();
   const aiSecrets = context.aiSecrets ?? createAiSecretStore();
   const promptStore = context.promptStore ?? createPromptStore();
+  const candidateFixer = context.candidateAutofix ?? createCandidateFixer(context.clientRoot);
 
   app.use("*", async (c, next) => {
     await next();
@@ -197,6 +202,13 @@ export function createApp(context: WorkbenchContext): Hono {
         input,
         conversation,
         check: context.engineCheck,
+        autofix: (content, signal) => candidateFixer({
+          workspace,
+          content,
+          settings: effective,
+          engineOverride: context.engineOverride,
+          signal,
+        }),
         onFinished: threadId
           ? async (result) => {
               await appendTurn(workspace, threadId, {
@@ -483,7 +495,8 @@ function applyRunOverride(settings: WorkbenchSettings, body: AgentRunInput): Wor
   const provider = body.provider;
   const model = body.model;
   const reasoning = body.reasoning;
-  if (provider === undefined && model === undefined && reasoning === undefined) return settings;
+  const baseUrl = body.baseUrl;
+  if (provider === undefined && model === undefined && reasoning === undefined && baseUrl === undefined) return settings;
   if (provider !== undefined && provider !== "openai" && provider !== "anthropic") {
     throw new Error("The run provider must be openai or anthropic.");
   }
@@ -500,6 +513,8 @@ function applyRunOverride(settings: WorkbenchSettings, body: AgentRunInput): Wor
       provider: provider ?? settings.ai.provider,
       model: model ?? settings.ai.model,
       reasoning: reasoning ?? settings.ai.reasoning,
+      // Explicit "" switches back to the official API; undefined keeps settings.
+      baseUrl: baseUrl === undefined ? settings.ai.baseUrl : normalizeAiBaseUrl(baseUrl),
     },
   };
 }
@@ -511,7 +526,18 @@ function resolveProvider(
 ): ModelProvider {
   if (settings.ai.provider === "openai") {
     const apiKey = aiSecrets.openAiKey();
-    if (!apiKey) throw new Error("Configure OPENAI_API_KEY in Workbench settings or the process environment.");
+    // A custom base URL targets an OpenAI-compatible server (Ollama, LM Studio,
+    // vLLM, …) over Chat Completions; local endpoints don't require a key.
+    if (settings.ai.baseUrl) {
+      return context.openAiCompatibleProvider?.(settings.ai.baseUrl, apiKey, settings.ai.model)
+        ?? new OpenAiCompatibleProvider(settings.ai.baseUrl, apiKey, settings.ai.model);
+    }
+    if (!apiKey) {
+      throw new Error(
+        "Configure OPENAI_API_KEY in Workbench settings, or set a Base URL for a local"
+        + " OpenAI-compatible server (e.g. http://127.0.0.1:11434/v1 for Ollama) — no key needed there.",
+      );
+    }
     return context.openAiProvider?.(apiKey, settings.ai.model, settings.ai.reasoning)
       ?? new OpenAiProvider(apiKey, settings.ai.model, settings.ai.reasoning);
   }

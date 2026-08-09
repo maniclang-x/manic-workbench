@@ -91,6 +91,54 @@ export class OpenAiProvider implements ModelProvider {
   }
 }
 
+/**
+ * Talks to any OpenAI-compatible Chat Completions endpoint — Ollama, LM Studio,
+ * vLLM, llama.cpp server, or a remote proxy. Unlike the official OpenAI
+ * Responses API, `${baseUrl}/chat/completions` is the compatibility surface
+ * every local runtime implements. The API key is optional because most local
+ * servers accept unauthenticated requests.
+ */
+export class OpenAiCompatibleProvider implements ModelProvider {
+  constructor(
+    private readonly baseUrl: string,
+    private readonly apiKey: string,
+    private readonly model: string,
+    private readonly fetcher: typeof fetch = fetch,
+  ) {}
+
+  async generate(request: ModelRequest, signal?: AbortSignal): Promise<ModelResult> {
+    const text = buildUserInput(request);
+    const userContent: unknown = request.images.length
+      ? [
+          { type: "text", text },
+          ...request.images.map((image) => ({ type: "image_url", image_url: { url: image.dataUrl } })),
+        ]
+      : text;
+    const payload: Record<string, unknown> = {
+      model: this.model,
+      messages: [
+        { role: "system", content: `${request.systemPrompt}\n\n${AGENT_CONTRACT}` },
+        { role: "user", content: userContent },
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: { name: "manic_agent_candidate", strict: true, schema: CANDIDATE_SCHEMA },
+      },
+    };
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (this.apiKey) headers.Authorization = `Bearer ${this.apiKey}`;
+    const response = await this.fetcher(`${this.baseUrl.replace(/\/+$/u, "")}/chat/completions`, {
+      method: "POST", signal, headers, body: JSON.stringify(payload),
+    });
+    const body = await response.json() as Record<string, unknown>;
+    if (!response.ok) throw new Error(providerError("The OpenAI-compatible endpoint", body, response.status));
+    return {
+      candidate: parseCandidate(stripCodeFences(chatCompletionText(body)), "The local model"),
+      usage: chatCompletionUsage(body.usage),
+    };
+  }
+}
+
 export class AnthropicProvider implements ModelProvider {
   constructor(
     private readonly apiKey: string,
@@ -148,6 +196,8 @@ export async function runManicAgent(options: {
   maxRepairAttempts?: number;
   onEvent?: (event: AgentEvent) => void;
   check?: EngineChecker;
+  /** Deterministic local auto-correct tried before a model repair round. */
+  autofix?: (content: string, signal?: AbortSignal) => Promise<{ code: string; fixed: number } | null>;
 }): Promise<AgentRunResult> {
   const id = `agent_${randomUUID().replaceAll("-", "")}`;
   const events: AgentEvent[] = [];
@@ -194,7 +244,7 @@ export async function runManicAgent(options: {
       }, options.signal);
       throwIfAborted();
       usage = addUsage(usage, generated.usage);
-      const candidate = enforceTarget(generated.candidate, targetPath, Boolean(active));
+      let candidate = enforceTarget(generated.candidate, targetPath, Boolean(active));
       previousCandidate = candidate;
       event("checking", `Running Manic check (${attempt}/${maxAttempts}).`);
       validation = await checkCandidate(
@@ -205,6 +255,25 @@ export async function runManicAgent(options: {
         options.signal,
         check,
       );
+      if (!validation.ok && options.autofix) {
+        // Try the deterministic local fixer before spending model tokens on
+        // a repair round; `manic check` remains the authority on the result.
+        const locally = await options.autofix(candidate.content, options.signal).catch(() => null);
+        throwIfAborted();
+        if (locally && locally.fixed > 0 && locally.code !== candidate.content) {
+          event("repairing", `Auto-fixed ${locally.fixed} ${locally.fixed === 1 ? "slip" : "slips"} locally without the model — rechecking.`);
+          candidate = { ...candidate, content: locally.code };
+          previousCandidate = candidate;
+          validation = await checkCandidate(
+            options.workspace,
+            candidate.content,
+            options.settings,
+            options.engineOverride,
+            options.signal,
+            check,
+          );
+        }
+      }
       if (validation.ok) {
         event("ready", `Manic check passed after ${attempt} ${attempt === 1 ? "attempt" : "attempts"}.`);
         return {
@@ -354,6 +423,39 @@ function openAiResponseText(body: Record<string, unknown>): string {
     }
   }
   throw new Error("OpenAI returned no candidate text.");
+}
+
+function chatCompletionText(body: Record<string, unknown>): string {
+  const choices = Array.isArray(body.choices) ? body.choices : [];
+  const first = choices[0];
+  if (first && typeof first === "object") {
+    const message = (first as Record<string, unknown>).message;
+    if (message && typeof message === "object") {
+      const content = (message as Record<string, unknown>).content;
+      if (typeof content === "string" && content) return content;
+    }
+  }
+  throw new Error("The OpenAI-compatible endpoint returned no candidate text.");
+}
+
+/**
+ * Local models that ignore response_format often wrap their JSON in a
+ * Markdown fence; tolerate that instead of failing the run.
+ */
+function stripCodeFences(output: string): string {
+  const trimmed = output.trim();
+  const match = /^```[A-Za-z0-9-]*\s*\n([\s\S]*?)\n?```$/u.exec(trimmed);
+  return match?.[1] ?? trimmed;
+}
+
+function chatCompletionUsage(value: unknown): ModelResult["usage"] {
+  if (!value || typeof value !== "object") return { inputTokens: null, outputTokens: null, totalTokens: null };
+  const usage = value as Record<string, unknown>;
+  return {
+    inputTokens: numberOrNull(usage.prompt_tokens),
+    outputTokens: numberOrNull(usage.completion_tokens),
+    totalTokens: numberOrNull(usage.total_tokens),
+  };
 }
 
 function anthropicResponseText(body: Record<string, unknown>): string {

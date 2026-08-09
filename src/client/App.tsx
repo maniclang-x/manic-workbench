@@ -494,7 +494,7 @@ export function App() {
             <PanelHeading number="03" title="AI provider" description="Enable a provider, choose or add a model, then configure API keys as local key/value secrets." />
             <div className="provider-row">
               <button type="button" className={settings.ai.provider === "none" ? "provider selected" : "provider"} onClick={() => selectProvider("none")}><span>—</span><strong>Off</strong><small>Local editing only</small></button>
-              <button type="button" className={settings.ai.provider === "openai" ? "provider selected" : "provider"} onClick={() => selectProvider("openai")}><span>O</span><strong>OpenAI</strong><small>Text + vision</small></button>
+              <button type="button" className={settings.ai.provider === "openai" ? "provider selected" : "provider"} onClick={() => selectProvider("openai")}><span>O</span><strong>OpenAI</strong><small>Official API or local: Ollama, LM Studio, vLLM…</small></button>
               <button type="button" className={settings.ai.provider === "anthropic" ? "provider selected" : "provider"} onClick={() => selectProvider("anthropic")}><span>A</span><strong>Anthropic</strong><small>Claude messages API</small></button>
             </div>
 
@@ -530,6 +530,22 @@ export function App() {
                 </label>
               )}
 
+              {activeProvider === "openai" && (
+                <label className="field span-two">
+                  <span>Base URL (OpenAI-compatible)</span>
+                  <input
+                    value={settings.ai.baseUrl}
+                    placeholder="Leave empty for api.openai.com · http://localhost:11434/v1 for Ollama"
+                    onChange={(event) => setSettings({ ...settings, ai: { ...settings.ai, baseUrl: event.target.value } })}
+                  />
+                  <small>
+                    Point Workbench at any OpenAI-compatible Chat Completions server — Ollama, LM Studio, vLLM,
+                    llama.cpp. Add the model id (e.g. qwen2.5-coder:14b) under Add model. Local endpoints
+                    don&apos;t need an API key; reasoning effort is skipped for compatible servers.
+                  </small>
+                </label>
+              )}
+
               <div className="field">
                 <span>Add model</span>
                 <div className="secret-input">
@@ -549,6 +565,13 @@ export function App() {
               </div>
 
               {(() => {
+                if (activeProvider === "openai" && settings.ai.baseUrl.trim()) {
+                  return (
+                    <p className="ai-provider-hint ready">
+                      Using the OpenAI-compatible endpoint {settings.ai.baseUrl.trim()} — an API key is optional.
+                    </p>
+                  );
+                }
                 const required = providerSecretKey(activeProvider);
                 const entry = required ? secretEntry(data.ai, required) : null;
                 return entry ? (

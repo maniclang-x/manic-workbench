@@ -179,6 +179,37 @@ describe("authorship threads", () => {
     expect(resolved).toEqual([{ provider: "anthropic", model: "claude-opus-5", reasoning: "high" }]);
   });
 
+  it("honors a per-run base URL override before settings are saved, normalizing bare hosts", async () => {
+    const workspace = await realpath(await mkdtemp(join(tmpdir(), "manic-baseurl-override-")));
+    const { app, resolved } = aiTestApp(workspace, [
+      candidate("create", "a.manic", "ok", 'title("A");\n'),
+    ], { withOpenAiKey: false });
+
+    const badUrl = await app.request(`${origin}/api/ai/run`, {
+      method: "POST", headers, body: JSON.stringify({ message: "x", intent: "create", path: "", newPath: "a.manic", images: [], baseUrl: "not a url" }),
+    });
+    expect(badUrl.status).toBe(400);
+
+    const started = await app.request(`${origin}/api/ai/run`, {
+      method: "POST", headers, body: JSON.stringify({ message: "make it", intent: "create", path: "", newPath: "a.manic", images: [], model: "gemma3:12b", baseUrl: "127.0.0.1:11434" }),
+    });
+    expect(started.status).toBe(202);
+    expect(resolved).toEqual([{ provider: "openai-compatible", baseUrl: "http://127.0.0.1:11434/v1", apiKey: "", model: "gemma3:12b" }]);
+  });
+
+  it("routes to the OpenAI-compatible provider when a base URL is set, without requiring a key", async () => {
+    const workspace = await realpath(await mkdtemp(join(tmpdir(), "manic-local-model-")));
+    const { app, resolved } = aiTestApp(workspace, [
+      candidate("create", "a.manic", "ok", 'title("A");\n'),
+    ], { baseUrl: "http://localhost:11434/v1", withOpenAiKey: false });
+
+    const started = await app.request(`${origin}/api/ai/run`, {
+      method: "POST", headers, body: JSON.stringify({ message: "make it", intent: "create", path: "", newPath: "a.manic", images: [], model: "qwen2.5-coder:14b" }),
+    });
+    expect(started.status).toBe(202);
+    expect(resolved).toEqual([{ provider: "openai-compatible", baseUrl: "http://localhost:11434/v1", apiKey: "", model: "qwen2.5-coder:14b" }]);
+  });
+
   it("runs the create-then-refine thread loop with steering context, external-edit marker, and stale-apply conflict", async () => {
     const workspace = await realpath(await mkdtemp(join(tmpdir(), "manic-thread-flow-")));
     const { app, provider } = aiTestApp(workspace, [
@@ -285,11 +316,12 @@ function candidate(operation: Candidate["operation"], path: string, message: str
   return { candidate: { operation, path, message, content }, usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 } };
 }
 
-function aiTestApp(workspace: string, script: ModelResult[]) {
+function aiTestApp(workspace: string, script: ModelResult[], options: { baseUrl?: string; withOpenAiKey?: boolean } = {}) {
   const provider = new RecordingProvider(script);
-  const resolved: Array<{ provider: string; model: string; reasoning: string }> = [];
+  const resolved: Array<{ provider: string; model: string; reasoning?: string; baseUrl?: string; apiKey?: string }> = [];
   const settings: WorkbenchSettings = structuredClone(defaultSettings);
   settings.ai.provider = "openai";
+  settings.ai.baseUrl = options.baseUrl ?? "";
   const settingsStore: SettingsStore = {
     path: "/safe/settings.json",
     async load() { return settings; },
@@ -302,11 +334,12 @@ function aiTestApp(workspace: string, script: ModelResult[]) {
     version: "0.1.0",
     settingsStore,
     aiSecrets: createAiSecretStore({
-      OPENAI_API_KEY: "sk-test-openai-key-1234567890",
+      ...(options.withOpenAiKey === false ? {} : { OPENAI_API_KEY: "sk-test-openai-key-1234567890" }),
       ANTHROPIC_API_KEY: "sk-ant-test-key-1234567890",
     }),
     promptStore: { async get() { return { content: "Write valid Manic.", version: "test-prompt", source: "bundled" as const, fetchedAt: 0 }; } },
     openAiProvider: (_apiKey, model, reasoning) => { resolved.push({ provider: "openai", model, reasoning }); return provider; },
+    openAiCompatibleProvider: (baseUrl, apiKey, model) => { resolved.push({ provider: "openai-compatible", baseUrl, apiKey, model }); return provider; },
     anthropicProvider: (_apiKey, model, reasoning) => { resolved.push({ provider: "anthropic", model, reasoning }); return provider; },
     engineCheck: async () => ({ ok: true, exitCode: 0, output: "ok" }),
     async diagnostics(_settings: WorkbenchSettings) {

@@ -42,6 +42,7 @@ export class AgentRunManager {
     input: AgentRunInput;
     conversation?: string;
     check?: EngineChecker;
+    autofix?: (content: string, signal?: AbortSignal) => Promise<{ code: string; fixed: number } | null>;
     maxRepairAttempts?: number;
     /** Awaited before the run becomes observable as finished. */
     onFinished?: (result: AgentRunResult) => void | Promise<void>;
@@ -89,6 +90,7 @@ export class AgentRunManager {
       conversation: options.conversation,
       signal: controller.signal,
       check: options.check,
+      autofix: options.autofix,
       maxRepairAttempts: options.maxRepairAttempts,
       onEvent,
     }).then(async (result) => {

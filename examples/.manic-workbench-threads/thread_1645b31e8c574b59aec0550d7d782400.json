@@ -1,0 +1,21 @@
+{
+  "protocolVersion": 1,
+  "threadId": "thread_1645b31e8c574b59aec0550d7d782400",
+  "target": {
+    "kind": "draft",
+    "draftName": "ai-story.manic"
+  },
+  "turns": [
+    {
+      "runId": "agent_pending_1786129804669",
+      "userMessage": "show me a olympiad level geomtery ",
+      "proposalSummary": "fetch failed",
+      "status": "failed",
+      "appliedRevision": null,
+      "at": 1786130105666
+    }
+  ],
+  "lastAppliedRevision": null,
+  "createdAt": 1786129804658,
+  "updatedAt": 1786130105668
+}

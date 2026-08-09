@@ -1,5 +1,5 @@
 title("The area between two curves");
-canva("16:9");
+canvas("16:9");
 
 let ox = cx - 460;
 let oy = cy + 40;

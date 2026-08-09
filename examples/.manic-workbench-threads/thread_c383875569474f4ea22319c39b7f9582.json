@@ -1,0 +1,21 @@
+{
+  "protocolVersion": 1,
+  "threadId": "thread_c383875569474f4ea22319c39b7f9582",
+  "target": {
+    "kind": "draft",
+    "draftName": "ai-story.manic"
+  },
+  "turns": [
+    {
+      "runId": "agent_pending_1786262775513",
+      "userMessage": "show me a physics simulation ",
+      "proposalSummary": "The local model returned an invalid structured candidate.",
+      "status": "failed",
+      "appliedRevision": null,
+      "at": 1786262873336
+    }
+  ],
+  "lastAppliedRevision": null,
+  "createdAt": 1786262773713,
+  "updatedAt": 1786262873337
+}

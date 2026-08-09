@@ -55,11 +55,13 @@ export function AiWorkspace({ token, settings, secrets, onOpen }: {
   const busy = run?.status === "running";
   const modelGroups = useMemo(() => PROVIDERS.map((provider) => ({
     provider,
-    label: provider === "openai" ? "OpenAI" : "Anthropic",
-    ready: providerConfigured(secrets, provider),
+    label: provider === "openai"
+      ? (settings.ai.baseUrl.trim() ? `OpenAI-compatible · ${hostLabel(settings.ai.baseUrl)}` : "OpenAI")
+      : "Anthropic",
+    ready: providerConfigured(secrets, provider, settings),
     models: modelsForProvider(provider, settings.ai.customModels),
-  })), [secrets, settings.ai.customModels]);
-  const choiceReady = providerConfigured(secrets, choice.provider);
+  })), [secrets, settings.ai.customModels, settings.ai.baseUrl]);
+  const choiceReady = providerConfigured(secrets, choice.provider, settings);
   const latestApplied = !!run && !!thread?.turns.find((turn) => turn.runId === run.id)?.appliedRevision;
   const canSend = choiceReady && !busy && !!message.trim();
   const diffLines = useMemo(
@@ -144,6 +146,9 @@ export function AiWorkspace({ token, settings, secrets, onOpen }: {
           provider: choice.provider,
           model: choice.model,
           reasoning,
+          // Sent per run so the endpoint the composer displays is always the
+          // one used, even before Settings are saved to disk.
+          baseUrl: settings.ai.baseUrl,
         }),
       });
       setRun(response.run);
@@ -380,13 +385,20 @@ function initialChoice(settings: WorkbenchSettings, secrets: AiSecretStatus): Mo
   if (settings.ai.provider === "openai" || settings.ai.provider === "anthropic") {
     return { provider: settings.ai.provider, model: settings.ai.model };
   }
-  const ready = PROVIDERS.find((provider) => providerConfigured(secrets, provider)) ?? "anthropic";
+  const ready = PROVIDERS.find((provider) => providerConfigured(secrets, provider, settings)) ?? "anthropic";
   return { provider: ready, model: modelsForProvider(ready, { openai: [], anthropic: [] })[0] ?? "" };
 }
 
-function providerConfigured(secrets: AiSecretStatus, provider: AiProviderId): boolean {
+function providerConfigured(secrets: AiSecretStatus, provider: AiProviderId, settings: WorkbenchSettings): boolean {
+  // A custom OpenAI-compatible endpoint (Ollama, LM Studio, …) needs no key.
+  if (provider === "openai" && settings.ai.baseUrl.trim()) return true;
   const key = providerSecretKey(provider);
   return !!key && secretEntry(secrets, key).configured;
+}
+
+function hostLabel(baseUrl: string): string {
+  try { return new URL(baseUrl.trim()).host; }
+  catch { return baseUrl.trim(); }
 }
 
 function normalizedPath(value: string): string {

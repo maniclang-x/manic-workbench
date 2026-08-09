@@ -1,0 +1,21 @@
+{
+  "protocolVersion": 1,
+  "threadId": "thread_51c32e7d8343409ba712678cee3b1a4f",
+  "target": {
+    "kind": "draft",
+    "draftName": "ollama.manic"
+  },
+  "turns": [
+    {
+      "runId": "agent_pending_1786262967222",
+      "userMessage": "show two bll going up and down ",
+      "proposalSummary": "The local model returned an invalid structured candidate.",
+      "status": "failed",
+      "appliedRevision": null,
+      "at": 1786263348443
+    }
+  ],
+  "lastAppliedRevision": null,
+  "createdAt": 1786262967213,
+  "updatedAt": 1786263348444
+}
