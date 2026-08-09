@@ -3,12 +3,12 @@
  * Publish @maniclang/workbench to npm.
  *
  * Usage:
- *   npm run release -- --otp=XXXXXX
- *   NPM_OTP=XXXXXX npm run release
+ *   npm run release
+ *   npm run release -- --otp=XXXXXX   # optional, if your npm account needs 2FA
  *
  * Bump first when the current version is already published:
  *   npm version patch   # or minor / major
- *   npm run release -- --otp=XXXXXX
+ *   npm run release
  */
 
 import { spawnSync } from "node:child_process";
@@ -29,17 +29,7 @@ if (await versionAlreadyPublished(name, version)) {
     `${name}@${version} is already on npm.\n` +
       `Bump first, then re-run:\n` +
       `  npm version patch\n` +
-      `  npm run release -- --otp=XXXXXX`,
-  );
-}
-
-if (!otp) {
-  fail(
-    "npm requires a one-time password (2FA).\n" +
-      "Re-run with:\n" +
-      "  npm run release -- --otp=XXXXXX\n" +
-      "or:\n" +
-      "  NPM_OTP=XXXXXX npm run release",
+      `  npm run release`,
   );
 }
 
@@ -47,7 +37,10 @@ run("npm", ["run", "typecheck"]);
 run("npm", ["test"]);
 run("npm", ["run", "build"]);
 run("npm", ["run", "pack:check"]);
-run("npm", ["publish", "--access", "public", `--otp=${otp}`]);
+
+const publishArgs = ["publish", "--access", "public"];
+if (otp) publishArgs.push(`--otp=${otp}`);
+run("npm", publishArgs);
 
 const published = capture("npm", ["view", `${name}@${version}`, "version"]).trim();
 if (published !== version) {

@@ -32,9 +32,9 @@ Maintainers release `@maniclang/workbench` with:
 
 ```bash
 npm version patch   # skip if package.json already has an unpublished version
-npm run release -- --otp=XXXXXX
+npm run release
 ```
 
 `npm run release` refuses to overwrite an existing version, runs typecheck /
-tests / build / pack, then `npm publish --access public`. Pass the 2FA code via
-`--otp=` or `NPM_OTP`.
+tests / build / pack, then `npm publish --access public`. OTP is optional
+(`--otp=` or `NPM_OTP`) when your npm account requires it.

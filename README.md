@@ -111,8 +111,10 @@ Ship a new npm release with the release script (checks, build, pack, publish):
 
 ```bash
 npm version patch   # or minor / major — required when the version is already on npm
-npm run release -- --otp=XXXXXX
+npm run release
 ```
+
+If npm asks for 2FA, pass it: `npm run release -- --otp=XXXXXX`.
 
 Then verify:
 
