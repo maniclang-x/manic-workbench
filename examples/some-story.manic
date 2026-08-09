@@ -1,0 +1,299 @@
+title("Angle Between Two Lines — Visualizing the Problem");
+canvas("16:9");
+template("black");
+
+// --- build-time geometry (pure computation, no answer stated on screen) ---
+let sx = 60;
+let sy = 60;
+let s3 = sqrt(3);
+
+// Given line: sqrt(3)x + y = 1  =>  y = 1 - sqrt(3)*x
+// Candidate line L through (3,-2) with slope sqrt(3): y = sqrt(3)*x - 3*sqrt(3) - 2
+// (This is the configuration that both makes a 60 degree angle with the given
+// line AND actually crosses the x-axis — we only use it to draw the picture.)
+
+let ix = (s3 + 3) / 2;
+let iy = 1 - s3*ix;
+let ipx = cx + ix*sx;
+let ipy = cy - iy*sy;
+
+let aax = -1;
+let aay = 1 - s3*aax;
+let apx = cx + aax*sx;
+let apy = cy - aay*sy;
+
+let ppx = cx + 3*sx;
+let ppy = cy - (-2)*sy;
+
+let xint = 3 + 2/s3;
+let xintpx = cx + xint*sx;
+let xintpy = cy;
+
+// --- cast (constructors): declare entities at t = 0 ---
+text(problem, (cx, 60), "A line $L$ through $(3,-2)$ is inclined at $60^\circ$ to $\sqrt{3}x + y = 1$ and meets the $x$-axis.");
+size(problem, 30);
+color(problem, fg);
+wrap(problem, 1050);
+hidden(problem);
+
+text(question, (cx, h - 50), "What is the equation of line $L$?");
+size(question, 32);
+color(question, gold);
+hidden(question);
+
+axes(axs, (cx, cy), 380, 340, 60);
+hidden(axs);
+
+plot(givenLine, (cx, cy), sx, sy, "1 - sqrt(3)*x", (-2, 3.4));
+color(givenLine, cyan);
+untraced(givenLine);
+
+equation(givenLabel, (apx - 70, apy - 30), `\sqrt{3}x+y=1`, 28);
+color(givenLabel, cyan);
+hidden(givenLabel);
+
+plot(L, (cx, cy), sx, sy, "sqrt(3)*x - 3*sqrt(3) - 2", (1.3, 5.3));
+color(L, magenta);
+dashed(L);
+untraced(L);
+
+text(Llabel, (xintpx + 30, xintpy - 60), "L");
+size(Llabel, 30);
+color(Llabel, magenta);
+hidden(Llabel);
+
+point(I, (ipx, ipy));
+hidden(I);
+
+point(A, (apx, apy));
+hidden(A);
+
+point(Bp, (ppx, ppy), "P(3, -2)");
+color(Bp, gold);
+size(Bp.label, 28);
+hidden(Bp);
+
+point(Q, (xintpx, xintpy), "L meets x-axis");
+color(Q, lime);
+size(Q.label, 26);
+hidden(Q);
+
+anglemark(ang, A, I, Bp);
+color(ang, gold);
+untraced(ang);
+
+equation(angLabel, (ipx - 20, ipy - 60), `60^\circ`, 30);
+color(angLabel, gold);
+hidden(angLabel);
+
+// --- script (timeline): reveal the construction step by step ---
+show(problem, 1);
+wait(0.5);
+
+show(axs, 1);
+wait(0.3);
+
+draw(givenLine, 1.2);
+show(givenLabel, 0.6);
+wait(0.4);
+
+show(Bp, 0.6);
+wait(0.4);
+
+draw(L, 1.2);
+show(Llabel, 0.5);
+wait(0.4);
+
+draw(ang, 0.8);
+show(angLabel, 0.6);
+wait(0.4);
+
+show(Q, 0.6);
+wait(0.6);
+
+show(question, 1);
+wait(1.5);
+
+// =====================================================================
+// PART 2 — Finding the solution
+// =====================================================================
+
+// clear the setup off screen to make room for the algebra
+fade(problem, 0.6);
+fade(question, 0.6);
+par {
+  fade(axs, 0.6);
+  fade(givenLine, 0.6);
+  fade(givenLabel, 0.6);
+  fade(L, 0.6);
+  fade(Llabel, 0.6);
+  fade(ang, 0.6);
+  fade(angLabel, 0.6);
+  fade(Bp, 0.6);
+  fade(Q, 0.6);
+  fade(I, 0.6);
+  fade(A, 0.6);
+}
+wait(0.4);
+
+section("Solving for the Slope of L");
+
+text(step1, (cx, 160), "Let the slope of $L$ be $m$. The given line $\sqrt{3}x+y=1$ has slope $m_1=-\sqrt{3}$.");
+size(step1, 28);
+color(step1, fg);
+wrap(step1, 1050);
+hidden(step1);
+
+equation(tanFormula, (cx, 280), `\tan 60^\circ=\left|\frac{m-m_1}{1+m\,m_1}\right|`, 42);
+hidden(tanFormula);
+
+equation(tanSub, (cx, 380), `\sqrt{3}=\left|\frac{m+\sqrt{3}}{1-\sqrt{3}\,m}\right|`, 42);
+hidden(tanSub);
+
+show(step1, 0.8);
+wait(0.4);
+show(tanFormula, 0.8);
+wait(0.6);
+show(tanSub, 0.8);
+wait(1);
+
+text(caseLabel, (cx, 460), "Removing the modulus gives two possible slopes:");
+size(caseLabel, 26);
+color(caseLabel, fg);
+hidden(caseLabel);
+show(caseLabel, 0.6);
+wait(0.3);
+
+equation(case1, (cx - 260, 540), `m=0`, 40);
+hidden(case1);
+
+text(case1note, (cx - 260, 600), "horizontal — never meets the $x$-axis");
+size(case1note, 22);
+color(case1note, dim);
+wrap(case1note, 340);
+hidden(case1note);
+
+equation(case2, (cx + 260, 540), `m=\sqrt{3}`, 40);
+hidden(case2);
+
+text(case2note, (cx + 260, 600), "meets the $x$-axis — this is $L$");
+size(case2note, 22);
+color(case2note, lime);
+wrap(case2note, 340);
+hidden(case2note);
+
+par {
+  show(case1, 0.6);
+  show(case1note, 0.6);
+}
+wait(0.4);
+par {
+  show(case2, 0.6);
+  show(case2note, 0.6);
+}
+wait(0.8);
+
+par {
+  recolor(case1, dim, 0.5);
+  recolor(case1note, dim, 0.5);
+}
+flash(case2, lime);
+wait(1);
+
+// dismiss the rejected case and the tan-formula scaffolding
+par {
+  fade(step1, 0.5);
+  fade(tanFormula, 0.5);
+  fade(tanSub, 0.5);
+  fade(caseLabel, 0.5);
+  fade(case1, 0.5);
+  fade(case1note, 0.5);
+}
+wait(0.3);
+
+par {
+  move(case2, (cx, 200), 0.8);
+  fade(case2note, 0.4);
+}
+wait(0.6);
+
+text(finalIntro, (cx, 300), "Using point-slope form through $P(3,-2)$ with $m=\sqrt{3}$:");
+size(finalIntro, 28);
+color(finalIntro, fg);
+wrap(finalIntro, 1050);
+hidden(finalIntro);
+show(finalIntro, 0.7);
+wait(0.4);
+
+equation(eqL, (cx, 400), `y-(-2)=\sqrt{3}(x-3)`, 44);
+hidden(eqL);
+show(eqL, 0.8);
+wait(0.9);
+
+rewrite(eqL, `y+2=\sqrt{3}x-3\sqrt{3}`, 1, smooth);
+wait(0.9);
+
+rewrite(eqL, `\sqrt{3}x-y-3\sqrt{3}-2=0`, 1, smooth);
+wait(1);
+
+text(finalLabel, (cx, 500), "Equation of Line L");
+size(finalLabel, 30);
+color(finalLabel, gold);
+hidden(finalLabel);
+show(finalLabel, 0.6);
+wait(0.3);
+
+par {
+  move(eqL, (cx, 560), 0.6);
+  scale(eqL, 1.15, 0.6);
+}
+recolor(eqL, gold, 0.4);
+pulse(eqL, 0.8);
+wait(1.5);
+
+// =====================================================================
+// PART 3 — Reveal the solved line back on the original figure
+// =====================================================================
+
+par {
+  fade(case2, 0.5);
+  fade(finalIntro, 0.5);
+  fade(finalLabel, 0.5);
+  fade(eqL, 0.5);
+}
+wait(0.4);
+
+section("The Solution, Visualized");
+
+par {
+  show(axs, 0.8);
+  show(givenLine, 0.8);
+  show(givenLabel, 0.6);
+}
+wait(0.3);
+
+par {
+  show(Bp, 0.5);
+  show(L, 0.8);
+}
+recolor(L, gold, 0.6);
+show(Q, 0.6);
+wait(0.4);
+
+equation(answer, (xintpx + 40, xintpy - 90), `\sqrt{3}x-y-3\sqrt{3}-2=0`, 32);
+color(answer, gold);
+hidden(answer);
+show(answer, 1);
+wait(0.6);
+
+par {
+  cam((xintpx, cy), 1.3, smooth);
+  zoom(1.3, 1.3, smooth);
+}
+wait(1.4);
+
+par {
+  cam((cx, cy), 1, smooth);
+  zoom(1, 1, smooth);
+}
+wait(1.5);
