@@ -13,10 +13,12 @@
     "examples"
   ],
   "scripts": {
-    "build": "node scripts/clean.mjs && npm run build:client && npm run build:server",
+    "wasm:build": "bash scripts/sync-language-wasm.sh",
+    "build": "npm run wasm:build && npm run build:package",
+    "build:package": "node scripts/clean.mjs && npm run build:client && npm run build:server",
     "build:client": "vite build",
     "build:server": "tsc -p tsconfig.server.json",
-    "dev": "npm run build:client && concurrently -k \"vite build --watch\" \"tsx watch src/server/cli.ts --no-open\"",
+    "dev": "npm run wasm:build && npm run build:client && concurrently -k \"vite build --watch\" \"tsx watch src/server/cli.ts --no-open\"",
     "start": "node dist/server/cli.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit",

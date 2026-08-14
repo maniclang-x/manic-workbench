@@ -33,9 +33,10 @@ if (await versionAlreadyPublished(name, version)) {
   );
 }
 
+run("npm", ["run", "wasm:build"]);
 run("npm", ["run", "typecheck"]);
 run("npm", ["test"]);
-run("npm", ["run", "build"]);
+run("npm", ["run", "build:package"]);
 run("npm", ["run", "pack:check"]);
 
 const publishArgs = ["publish", "--access", "public"];
