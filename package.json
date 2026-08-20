@@ -1,6 +1,6 @@
 {
   "name": "@maniclang/workbench",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Local-first public interface for the Manic Engine",
   "type": "module",
   "bin": {
