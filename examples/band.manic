@@ -15,14 +15,21 @@ plot(upper, (ox, oy), 140, 90, "0.4*x + 1.4", (0, 6.3));
 color(upper, cyan); stroke(upper, 3); untraced(upper);
 
 plot(lower, (ox, oy), 140, 90, "sin(x)", (0, 6.3));
-color(lower, magenta); stroke(lower, 3); untraced(lower);
+stroke(lower, 3);
+color(lower, magenta);
+untraced(lower);
+
 
 // the band between them
 band(gap, upper, lower);
 color(gap, lime); hidden(gap);
 
-text(cap, (cx, h - 56), "band(top, bottom) fills the space between");
-size(cap, 20); color(cap, dim); display(cap); hidden(cap);
+text(cap, (cx + 405 - 383 - 21, h - 56 - 53 + 37 - 7), "band(top, bottom) fills the space between");
+size(cap, 20);
+display(cap);
+color(cap, dim);
+hidden(cap, center);
+
 
 // ---- timeline ----
 show(hdr, 0.6);

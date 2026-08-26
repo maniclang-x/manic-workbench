@@ -1,4 +1,5 @@
 import type { WorkbenchSettings } from "./settings.js";
+import { delimiter, join } from "node:path";
 
 /** Well-known Manic env vars users commonly set for archive installs. */
 export const SUGGESTED_MANIC_ENV_KEYS = ["MANIC_ASSETS_DIR"] as const;
@@ -34,6 +35,27 @@ export function buildManicEnv(
     if (!value.trim()) delete env[key];
     else env[key] = value;
   }
+  return env;
+}
+
+/**
+ * Build the engine environment for a workspace. Project uploads live below
+ * `.manic/assets`, so the same portable `asset:project/...` URI works in check,
+ * native preview, and render without leaking an absolute author-machine path
+ * into Manic source.
+ */
+export function buildWorkspaceManicEnv(
+  workspace: string,
+  settings: Pick<WorkbenchSettings, "engineEnv">,
+  extra: Record<string, string> = {},
+): NodeJS.ProcessEnv {
+  const env = buildManicEnv(settings, extra);
+  const projectRoot = join(workspace, ".manic", "assets");
+  const existing = (env.MANIC_EXTRA_ASSETS_DIR ?? "")
+    .split(delimiter)
+    .map((entry) => entry.trim())
+    .filter((entry) => entry && entry !== projectRoot);
+  env.MANIC_EXTRA_ASSETS_DIR = [projectRoot, ...existing].join(delimiter);
   return env;
 }
 

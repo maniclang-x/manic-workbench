@@ -3,7 +3,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { mkdir, readFile, readdir, rename, stat, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import type { WorkbenchSettings } from "./settings.js";
-import { buildManicEnv } from "./manicEnv.js";
+import { buildWorkspaceManicEnv } from "./manicEnv.js";
 
 export type RenderFormat = "mp4" | "gif" | "png";
 export type RenderStatus = "queued" | "running" | "completed" | "failed" | "cancelled";
@@ -57,7 +57,7 @@ export class RenderJobManager {
     const command = this.engineOverride || settings.enginePath || process.env.MANIC_BIN || "manic";
     const child = spawn(command, buildPreviewArguments(file, settings.preview), {
       shell: false, detached: false, stdio: "ignore", cwd: workspace,
-      env: buildManicEnv(settings),
+      env: buildWorkspaceManicEnv(workspace, settings),
     });
     await new Promise<void>((resolveStarted, rejectStarted) => {
       child.once("spawn", () => { child.unref(); resolveStarted(); });
@@ -86,7 +86,7 @@ export class RenderJobManager {
     const command = this.engineOverride || settings.enginePath || process.env.MANIC_BIN || "manic";
     const child = spawn(command, buildRenderArguments(file, outputDirectory, options), {
       shell: false, stdio: ["ignore", "pipe", "pipe"], cwd: workspace,
-      env: buildManicEnv(settings, { MANIC_PROGRESS: "json" }),
+      env: buildWorkspaceManicEnv(workspace, settings, { MANIC_PROGRESS: "json" }),
     });
     job.process = child;
     job.status = "running";

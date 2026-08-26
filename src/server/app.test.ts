@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "./app.js";
 import { createAiSecretStore } from "./aiSecrets.js";
-import type { AgentThread, Candidate, ModelProvider, ModelRequest, ModelResult } from "./manicAgent.js";
+import type { AgentThread, Candidate, EngineChecker, ModelProvider, ModelRequest, ModelResult } from "./manicAgent.js";
 import { defaultSettings, validateSettings, type SettingsStore, type WorkbenchSettings } from "./settings.js";
 
 const token = "test-session-token";
@@ -114,6 +114,33 @@ describe("Workbench local API boundary", () => {
     });
     expect(trashResponse.status).toBe(200);
     await expect(trashResponse.json()).resolves.toMatchObject({ path: "renamed.manic" });
+  });
+
+  it("runs Manic check and blocks preview when the file is invalid", async () => {
+    const workspace = await realpath(await mkdtemp(join(tmpdir(), "manic-preview-check-")));
+    await writeFile(join(workspace, "broken.manic"), "not valid Manic\n");
+    const engineCheck = vi.fn<EngineChecker>(async () => ({
+      ok: false,
+      exitCode: 2,
+      output: "broken.manic:1:1: expected a statement",
+    }));
+    const app = testApp("/missing/client", undefined, workspace, engineCheck);
+
+    const response = await app.request(`${origin}/api/preview`, {
+      method: "POST",
+      headers: { Origin: origin, "X-Manic-Session": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ path: "broken.manic" }),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      started: false,
+      path: "broken.manic",
+      check: { ok: false, exitCode: 2, output: "broken.manic:1:1: expected a statement" },
+    });
+    expect(engineCheck).toHaveBeenCalledOnce();
+    expect(engineCheck.mock.calls[0]?.[0]).toBe(workspace);
+    expect(engineCheck.mock.calls[0]?.[1]).toBe(join(workspace, "broken.manic"));
   });
 
 });
@@ -352,7 +379,7 @@ function aiTestApp(workspace: string, script: ModelResult[], options: { baseUrl?
   return { app, provider, resolved };
 }
 
-function testApp(clientRoot = "/missing/client", pickWorkspace?: (currentWorkspace: string) => Promise<string | null>, workspace = "/safe/project") {
+function testApp(clientRoot = "/missing/client", pickWorkspace?: (currentWorkspace: string) => Promise<string | null>, workspace = "/safe/project", engineCheck?: EngineChecker) {
   let settings = structuredClone(defaultSettings);
   const settingsStore: SettingsStore = {
     path: "/safe/settings.json",
@@ -369,6 +396,7 @@ function testApp(clientRoot = "/missing/client", pickWorkspace?: (currentWorkspa
     version: "0.1.0",
     settingsStore,
     pickWorkspace,
+    engineCheck,
     async diagnostics(_settings: WorkbenchSettings) {
       return {
         engine: { available: true, command: "manic", version: "manic 0.1.0", detail: null },

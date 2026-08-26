@@ -1,6 +1,6 @@
 {
   "name": "@maniclang/workbench",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "description": "Local-first public interface for the Manic Engine",
   "type": "module",
   "bin": {
@@ -24,7 +24,8 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.server.json --noEmit",
     "pack:check": "npm pack --dry-run",
     "prepublishOnly": "npm run build",
-    "release": "node scripts/publish.mjs"
+    "release": "node scripts/publish.mjs",
+    "demo": "tsx demo/run.ts"
   },
   "engines": {
     "node": ">=22"
@@ -34,8 +35,10 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.0",
+    "@maniclang/scene": "file:../manic-scene",
     "@monaco-editor/react": "^4.7.0",
     "hono": "^4.10.8",
+    "katex": "^0.18.4",
     "monaco-editor": "^0.53.0",
     "open": "^10.2.0",
     "react": "^19.2.3",
@@ -47,6 +50,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
     "concurrently": "^9.2.1",
+    "playwright": "^1.62.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",

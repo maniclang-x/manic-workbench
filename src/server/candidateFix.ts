@@ -4,7 +4,7 @@ import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { WorkbenchSettings } from "./settings.js";
-import { buildManicEnv } from "./manicEnv.js";
+import { buildWorkspaceManicEnv } from "./manicEnv.js";
 
 export interface CandidateFixArgs {
   workspace: string;
@@ -65,7 +65,7 @@ function spawnEngineFix(args: CandidateFixArgs, file: string): Promise<string | 
       cwd: args.workspace,
       shell: false,
       stdio: ["ignore", "pipe", "ignore"],
-      env: buildManicEnv(args.settings),
+      env: buildWorkspaceManicEnv(args.workspace, args.settings),
     });
     let output = "";
     const onAbort = () => {

@@ -12,6 +12,7 @@ import {
   type AiProviderId,
   type AiReasoningEffort,
   type AiSecretStatus,
+  type PreviewResult,
   type WorkspaceFile,
   type WorkspaceFileSummary,
   type WorkbenchSettings,
@@ -204,8 +205,10 @@ export function AiWorkspace({ token, settings, secrets, onOpen }: {
     try {
       const target = await applyProposal();
       if (action === "preview") {
-        await apiRequest<{ started: boolean }>(token, "/api/preview", { method: "POST", body: JSON.stringify({ path: target }) });
-        setNotice(`Preview opened for ${target}.`);
+        const result = await apiRequest<PreviewResult>(token, "/api/preview", { method: "POST", body: JSON.stringify({ path: target }) });
+        setNotice(result.started
+          ? `Preview opened for ${target}.`
+          : `Preview stopped because Manic found errors.\n\n${result.check.output || "Manic did not provide error output."}`);
       } else onOpen({ path: target, action, nonce: Date.now() });
     } catch (error) { setNotice(error instanceof Error ? error.message : "The AI proposal could not be applied."); }
   }

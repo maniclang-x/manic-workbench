@@ -94,3 +94,38 @@ text(ans, (640, 300), "exact area = 125/24 = 5.208");  display(ans);  color(ans,
 show(ans, 0.5);
 pulse(ans);
 wait(1.6);
+
+// BEGIN WORKBENCH CANVAS
+// Scene built visually. Every line is ordinary Manic — edit freely.
+template("black");
+
+text(idea, (351, 89), "Start with an idea");
+size(idea, 52);
+color(idea, fg);
+hidden(idea);
+
+circle(focus, (509, 397), 118);
+color(focus, cyan);
+hidden(focus, center);
+
+text(note, (362, 605), "Add, arrange, then animate.");
+size(note, 26);
+color(note, dim);
+hidden(note);
+
+rect(rect, (197, 285), 240, 140);
+color(rect, magenta);
+
+step("Reveal") {
+  stagger(0.2) {
+    show(idea, 0.6);
+    show(focus, 0.7, overshoot);
+    show(note, 0.5);
+  }
+}
+
+step("Focus") {
+  pulse(focus, 0.9);
+  flash(idea, gold, 0.9);
+}
+// END WORKBENCH CANVAS

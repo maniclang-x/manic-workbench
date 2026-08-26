@@ -17,6 +17,7 @@ import {
   appendTurn, buildConversation, createThread, getThread, listThreads, recordApply, removeThread, ThreadNotFoundError,
 } from "./agentThreads.js";
 import { createPromptStore, type PromptStore } from "./promptStore.js";
+import { importProjectAsset, resolveAsset, searchAssets } from "./assets.js";
 import {
   createManicFile, duplicateManicFile, listManicFiles, readManicFile, renameManicFile,
   resolveExistingManicFile, resolveWorkspace, saveManicFile, trashManicFile, WorkspaceConflictError,
@@ -33,7 +34,7 @@ export interface WorkbenchContext {
   engineOverride?: string;
   aiSecrets?: AiSecretStore;
   promptStore?: PromptStore;
-  /** Test seam for agent-run candidate validation; defaults to the installed engine. */
+  /** Test seam for preview, manual, and agent-run validation; defaults to the installed engine. */
   engineCheck?: EngineChecker;
   /** Test seam for the local candidate autofix; defaults to engine `manic fix` with WASM fallback. */
   candidateAutofix?: CandidateFixer;
@@ -50,6 +51,7 @@ export function createApp(context: WorkbenchContext): Hono {
   const aiSecrets = context.aiSecrets ?? createAiSecretStore();
   const promptStore = context.promptStore ?? createPromptStore();
   const candidateFixer = context.candidateAutofix ?? createCandidateFixer(context.clientRoot);
+  const engineCheck = context.engineCheck ?? runEngineCheck;
 
   app.use("*", async (c, next) => {
     await next();
@@ -321,6 +323,65 @@ export function createApp(context: WorkbenchContext): Hono {
     }
   });
 
+  app.get("/api/assets", async (c) => {
+    try {
+      const scope = c.req.query("scope") === "project" ? "project" : "library";
+      const requestedKind = c.req.query("kind");
+      const kind = requestedKind === "image" || requestedKind === "svg" || requestedKind === "model" ? requestedKind : "all";
+      const settings = await context.settingsStore.load();
+      return c.json(await searchAssets(workspace, settings, {
+        scope,
+        kind,
+        query: c.req.query("query") ?? "",
+        cursor: c.req.query("cursor") ?? null,
+        limit: Number(c.req.query("limit") ?? 48),
+      }, context.engineOverride));
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "Assets could not be listed." }, 400);
+    }
+  });
+
+  app.get("/api/assets/resolve", async (c) => {
+    try {
+      const settings = await context.settingsStore.load();
+      const resolved = await resolveAsset(workspace, settings, c.req.query("uri") ?? "", context.engineOverride);
+      return c.json({ asset: resolved.asset });
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "The asset could not be resolved." }, 404);
+    }
+  });
+
+  app.get("/api/assets/content", async (c) => {
+    try {
+      const settings = await context.settingsStore.load();
+      const resolved = await resolveAsset(workspace, settings, c.req.query("uri") ?? "", context.engineOverride);
+      const size = (await stat(resolved.path)).size;
+      const stream = createReadStream(resolved.path);
+      return new Response(Readable.toWeb(stream) as ReadableStream<Uint8Array>, {
+        headers: {
+          "Content-Type": resolved.asset.mediaType,
+          "Content-Length": String(size),
+          "Content-Disposition": "inline",
+          "Cache-Control": "private, no-store",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "The asset content is unavailable." }, 404);
+    }
+  });
+
+  app.post("/api/assets/import", async (c) => {
+    try {
+      const form = await c.req.formData();
+      const file = form.get("file");
+      if (!(file instanceof File)) throw new Error("Choose a PNG, JPEG, or SVG file to upload.");
+      return c.json({ asset: await importProjectAsset(workspace, file) }, 201);
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "The asset could not be imported." }, 400);
+    }
+  });
+
   app.get("/api/file", async (c) => {
     try {
       return c.json({ file: await readManicFile(workspace, c.req.query("path") ?? "") });
@@ -397,8 +458,10 @@ export function createApp(context: WorkbenchContext): Hono {
       if (typeof body.path !== "string") throw new Error("path is required.");
       const file = await resolveExistingManicFile(workspace, body.path);
       const settings = await context.settingsStore.load();
+      const check = await engineCheck(workspace, file.absolute, settings, context.engineOverride);
+      if (!check.ok) return c.json({ started: false, path: file.path, check });
       await renders.launchPreview(workspace, file.absolute, settings);
-      return c.json({ started: true, path: file.path });
+      return c.json({ started: true, path: file.path, check });
     } catch (error) {
       return c.json({ error: error instanceof Error ? error.message : "Preview could not be started." }, 400);
     }
@@ -410,7 +473,7 @@ export function createApp(context: WorkbenchContext): Hono {
       if (typeof body.path !== "string") throw new Error("path is required.");
       const file = await resolveExistingManicFile(workspace, body.path);
       const settings = await context.settingsStore.load();
-      return c.json(await runEngineCheck(workspace, file.absolute, settings, context.engineOverride));
+      return c.json(await engineCheck(workspace, file.absolute, settings, context.engineOverride));
     } catch (error) {
       return c.json({ error: error instanceof Error ? error.message : "Manic check could not be run." }, 400);
     }
@@ -567,6 +630,7 @@ function contentType(path: string): string {
     case ".css": return "text/css; charset=utf-8";
     case ".svg": return "image/svg+xml";
     case ".png": return "image/png";
+    case ".obj": return "model/obj";
     case ".woff2": return "font/woff2";
     case ".wasm": return "application/wasm";
     default: return "application/octet-stream";
