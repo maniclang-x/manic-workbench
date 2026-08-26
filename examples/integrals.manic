@@ -1,5 +1,5 @@
 title("Ways to Integrate");
-canvas(1000, 1000);
+canvas(1280, 720);
 template("black");
 
 // ---------- layout constants ----------
@@ -269,3 +269,6 @@ par {
 }
 say(cap, "One area - three philosophies of slicing", 0.6);
 wait(2.5);
+
+equation(equation, (548, 548), `\int_{a}^{b} f(x)\,dx`, 48);
+color(equation, fg);

@@ -190,6 +190,12 @@ export interface EngineCheckResult {
   output: string;
 }
 
+export interface PreviewResult {
+  started: boolean;
+  path: string;
+  check: EngineCheckResult;
+}
+
 export type RenderFormat = "mp4" | "gif" | "png";
 export interface RenderJob {
   id: string;

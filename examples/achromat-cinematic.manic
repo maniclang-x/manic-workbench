@@ -20,7 +20,9 @@ text(cap, (cx, h - 46), ""); color(cap, fg); size(cap, 24); bold(cap); display(c
 
 // ================= THE SCENE =================
 say(cap, "one simple lens — but the colours refuse to agree…", 0.5);
-wait(0.6);
+seq {
+  wait(0.6);
+}
 
 par {
   run(ac, 8);
@@ -36,3 +38,68 @@ par {
 }
 par { cam((cx, 360), 1.3, smooth); zoom(1.0, 1.3, smooth); }
 wait(1.2);
+
+// BEGIN WORKBENCH CANVAS
+// Scene built visually. Every line is ordinary Manic — edit freely.
+template("blueprint");
+
+text(idea, (640, 126), "Start with an idea");
+size(idea, 52);
+align(idea, right);
+color(idea, fg);
+hidden(idea);
+
+circle(focus, (494, 401), 118);
+color(focus, cyan);
+hidden(focus, center);
+
+text(note, (640, 600), "Add, arrange, then animate.");
+size(note, 26);
+color(note, dim);
+hidden(note);
+
+text(label, (612, 367), "New text");
+size(label, 32);
+color(label, fg);
+hidden(label, center);
+
+step("Reveal") {
+  stagger(0.2) {
+    show(idea, 0.6);
+    show(focus, 0.7, overshoot);
+    show(note, 0.5);
+  }
+}
+
+step("Focus") {
+  pulse(focus, 0.9);
+  flash(idea, gold, 0.9);
+}
+// END WORKBENCH CANVAS
+
+label(gap, "label", (0, -48));
+color(gap.label, fg);
+
+caption(caption, "one word at a time", (291, 230), 24, gold);
+
+text(label2, (310, 372), "New textdas");
+size(label2, 32);
+color(label2, fg);
+
+dot(dot, (688, 408), 20);
+color(dot, cyan);
+
+dot(dot2, (995, 169), 2);
+color(dot2, cyan);
+
+text(label3, (616, 336), "New text");
+size(label3, 32);
+color(label3, fg);
+
+link(link, gap, cap);
+color(link, fg);
+
+framebox(framebox, gap, 8, gold);
+
+bracelabel(bracelabel, (582, 444), (802, 444), "label", 22);
+color(bracelabel, fg);

@@ -5,9 +5,10 @@ import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { apiRequest, type EngineCheckResult, type RenderFormat, type RenderJob, type WorkbenchSettings, type WorkspaceFile, type WorkspaceFileSummary } from "./api";
+import { apiRequest, type EngineCheckResult, type PreviewResult, type RenderFormat, type RenderJob, type WorkbenchSettings, type WorkspaceFile, type WorkspaceFileSummary } from "./api";
 import { loadManicLanguage, type ManicDiagnostic, type ManicLanguageService } from "./manicLanguage";
 import type { EditorOpenRequest } from "./AiWorkspace";
+import { VisualCanvas } from "./VisualCanvas";
 
 type SaveState = "clean" | "dirty" | "saving" | "saved" | "conflict" | "error";
 interface OpenFile extends WorkspaceFile { saveState: SaveState; message: string; }
@@ -39,6 +40,7 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
   const [renderHistory, setRenderHistory] = useState<RenderJob[]>([]);
   const [engineCheck, setEngineCheck] = useState<EngineCheckResult | null>(null);
   const [checkingEngine, setCheckingEngine] = useState(false);
+  const [workspaceMode, setWorkspaceMode] = useState<"canvas" | "source">("canvas");
   const tabsRef = useRef(tabs);
   const timers = useRef(new Map<string, number>());
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -297,14 +299,23 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
   }
 
   async function previewFile() {
-    if (!active) return;
+    if (!active || checkingEngine) return;
     if (!["clean", "saved"].includes(active.saveState)) {
       setMessage("Wait for autosave or resolve the file conflict before previewing."); return;
     }
+    setCheckingEngine(true);
+    setEngineCheck(null);
+    setMessage(`Checking ${active.name} with Manic before preview…`);
     try {
-      await apiRequest<{ started: boolean }>(token, "/api/preview", { method: "POST", body: JSON.stringify({ path: active.path }) });
+      const result = await apiRequest<PreviewResult>(token, "/api/preview", { method: "POST", body: JSON.stringify({ path: active.path }) });
+      if (!result.started) {
+        setEngineCheck(result.check);
+        setMessage("Preview stopped because Manic found errors. Fix them and try again.");
+        return;
+      }
       setMessage(`Preview opened for ${active.name}.`);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Preview could not be opened."); }
+    finally { setCheckingEngine(false); }
   }
 
   async function checkWithManic() {
@@ -378,6 +389,20 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
     setRenderJob(job);
     if (job.status === "completed") await loadRenderOutput(job);
     else { if (renderMedia) URL.revokeObjectURL(renderMedia); setRenderMedia(""); setRenderMediaJobId(""); }
+  }
+
+  /** Canvas → "Edit in Source": switch modes and land Monaco on the statement. */
+  function revealSourceOffset(offset: number) {
+    setWorkspaceMode("source");
+    window.setTimeout(() => {
+      const editor = editorRef.current;
+      const model = editor?.getModel();
+      if (!editor || !model) return;
+      const position = model.getPositionAt(offset);
+      editor.revealPositionInCenter(position);
+      editor.setPosition(position);
+      editor.focus();
+    }, 250);
   }
 
   function revealDiagnostic(diagnostic: VisibleDiagnostic) {
@@ -512,6 +537,10 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
       <header className="workspace-header">
         <div><span className="eyebrow">PROJECT · {projectName.toUpperCase()}</span><h1>Write with Manic.</h1></div>
         <div className="editor-actions">
+          <div className="workspace-mode-switch" aria-label="Workbench mode">
+            <button className={workspaceMode === "canvas" ? "active" : ""} onClick={() => setWorkspaceMode("canvas")}>Canvas</button>
+            <button className={workspaceMode === "source" ? "active" : ""} onClick={() => setWorkspaceMode("source")}>Source</button>
+          </div>
           <span className={`language-label ${languageState}`}>{languageState === "ready" ? `Issues · ${diagnosticCount}` : languageState === "fallback" ? "Issues · basic check" : "Checking issues…"}</span>
           <button className="autofix-button" onClick={() => void checkWithManic()} disabled={!active || checkingEngine}>{checkingEngine ? "Checking…" : "Check with Manic"}</button>
           <button className="autofix-button" onClick={autoFix} disabled={!active || languageState !== "ready"}>Auto-fix</button>
@@ -519,6 +548,17 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
         </div>
       </header>
       {message && <div className="notice error">{message}</div>}
+      {engineCheck && <section className={engineCheck.ok ? "engine-check-panel ok" : "engine-check-panel error"} aria-label="Full Manic check output">
+        <div>
+          <strong>{engineCheck.ok ? "Manic check passed" : `Manic check failed · exit ${engineCheck.exitCode ?? "unknown"}`}</strong>
+          <span className="engine-check-actions">
+            {!engineCheck.ok && workspaceMode !== "source" && <button onClick={() => setWorkspaceMode("source")}>Open source</button>}
+            <button onClick={() => setEngineCheck(null)}>Close</button>
+          </span>
+        </div>
+        <pre>{engineCheck.output || (engineCheck.ok ? "No issues found." : "Manic did not provide error output.")}</pre>
+      </section>}
+      {workspaceMode === "canvas" && active ? <VisualCanvas key={active.path} token={token} fileName={active.path} source={active.content} onApply={editFile} onOpenSource={() => setWorkspaceMode("source")} onRevealSource={revealSourceOffset} onPreview={() => void previewFile()} /> :
       <div className="editor-shell">
         <aside className="file-tree">
           <div className="tree-heading"><strong>Files</strong><span><button onClick={() => void createFile()}>New</button><button onClick={() => void refreshFiles()}>Refresh</button></span></div>
@@ -530,7 +570,7 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
         </aside>
         <section className="editor-area">
           <div className="file-toolbar">
-            <button className="primary-action" onClick={() => void previewFile()} disabled={!active}>▶ Preview</button>
+            <button className="primary-action" onClick={() => void previewFile()} disabled={!active || checkingEngine}>{checkingEngine ? "Checking…" : "▶ Preview"}</button>
             <button className="primary-action" onClick={chooseRender} disabled={!active}>● Render</button>
             <span className="toolbar-divider" />
             <button onClick={() => void createFile()}>New</button>
@@ -598,11 +638,11 @@ export function WorkspaceEditor({ token, workspace, settings, onUnsafeChange, op
                 </button>)}
               </div>
             </section>}
-            {engineCheck && <section className={engineCheck.ok ? "engine-check-panel ok" : "engine-check-panel error"} aria-label="Full Manic check output"><div><strong>{engineCheck.ok ? "Manic check passed" : `Manic check failed · exit ${engineCheck.exitCode ?? "unknown"}`}</strong><button onClick={() => setEngineCheck(null)}>Close</button></div><pre>{engineCheck.output}</pre></section>}
             <div className="editor-status"><span>{active.path}</span><span>{active.message || statusText(active.saveState)}</span></div>
           </> : <div className="empty-editor"><strong>Choose a Manic file</strong><p>Your open files will appear as tabs.</p></div>}
         </section>
       </div>
+      }
       {contextMenu && <div className="file-context-menu" style={{ left: contextMenu.x, top: contextMenu.y }} onClick={(event) => event.stopPropagation()}>
         <strong>{contextMenu.path}</strong>
         <button onClick={() => { setContextMenu(null); void openFile(contextMenu.path); }}>Open</button>

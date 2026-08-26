@@ -3,7 +3,7 @@
 // dropping an empty stage changes the following acceleration, not past speed.
 
 title("Why Do Rockets Use Stages?");
-canvas("9:16");
+canvas(720, 1280);
 template("shorts");
 voice("gtts");
 

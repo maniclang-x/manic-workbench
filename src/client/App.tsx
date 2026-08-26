@@ -258,7 +258,7 @@ export function App() {
         </div>
       </aside>
 
-      <main>
+      <main className={view === "files" ? "main-workspace" : undefined}>
         {message && <div className="notice error">{message}</div>}
         {view === "files" ? <WorkspaceEditor key={data.workspace} token={sessionToken} workspace={data.workspace} settings={settings} onUnsafeChange={setEditorUnsafe} openRequest={editorOpenRequest} /> : view === "ai" ? <AiWorkspace token={sessionToken} settings={settings} secrets={data.ai} onSecretChange={(ai) => setData((current) => current ? { ...current, ai } : current)} onOpen={(request) => { setEditorOpenRequest(request); setView("files"); }} /> : <>
         <header>

@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import type { WorkbenchSettings } from "./settings.js";
-import { buildManicEnv } from "./manicEnv.js";
+import { buildWorkspaceManicEnv } from "./manicEnv.js";
 
 export interface EngineCheckResult {
   ok: boolean;
@@ -22,7 +22,7 @@ export async function runEngineCheck(
       cwd: workspace,
       shell: false,
       stdio: ["ignore", "pipe", "pipe"],
-      env: buildManicEnv(settings),
+      env: buildWorkspaceManicEnv(workspace, settings),
     });
     let output = "";
     let settled = false;

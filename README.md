@@ -56,9 +56,12 @@ Workbench opens a loopback-only local URL (with a session token). Use
 
 - **Files** — browse, create, rename, duplicate, and delete `.manic` stories;
   edit in Monaco with syntax help, diagnostics, and autosave
-- **Preview** — launch the native Manic preview for the active file
+- **Preview** — run `manic check` first, show the full error output when it
+  fails, and launch the native Manic preview only for a valid active file
 - **Render** — MP4, animated GIF, or PNG frames with live progress, history,
   and playback under the project’s `.manic-output` folder
+- **Assets** — search the bundled Library, import PNG/JPEG/SVG files into the
+  current project, and place `image()` or `svg()` entities without writing code
 - **Settings** — Manic executable path, `MANIC_*` environment variables
   (for example `MANIC_ASSETS_DIR` for archive installs), install Manic when
   missing (official installer or Homebrew), release channel, preview defaults,
@@ -69,6 +72,20 @@ Workbench opens a loopback-only local URL (with a session token). Use
 
 Nothing leaves your machine unless you configure an AI provider. Preview and
 render never start from AI automatically.
+
+## Assets
+
+Set `MANIC_ASSETS_DIR` to the engine asset directory containing
+`catalogue-manifest.json` to enable the Canvas Library. Files imported through
+the Project tab are copied beneath `.manic/assets/` and registered in
+`.manic/assets.json`; Manic source stores only a portable
+`asset:project/<uuid>/…` URI. Workbench automatically gives that project asset
+root to native Check, Preview, and Render through `MANIC_EXTRA_ASSETS_DIR`.
+
+Uploads are content-sniffed and limited to 16 MB. SVG scripts, event handlers,
+external resources, document types, entities, and `foreignObject` are rejected.
+Do not edit project catalogue records by hand; use the Canvas asset drawer so
+the stored checksum and metadata remain consistent.
 
 ## AI setup (optional)
 

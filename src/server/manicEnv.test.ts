@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildManicEnv, suggestAssetsDirFromEnginePath, withSuggestedAssetsDir } from "./manicEnv.js";
+import { delimiter, join } from "node:path";
+import { buildManicEnv, buildWorkspaceManicEnv, suggestAssetsDirFromEnginePath, withSuggestedAssetsDir } from "./manicEnv.js";
 import { validateSettings } from "./settings.js";
 
 describe("Manic environment helpers", () => {
@@ -29,6 +30,16 @@ describe("Manic environment helpers", () => {
       { MANIC_PROGRESS: "json" },
     );
     expect(env.MANIC_ASSETS_DIR).toBe("/tmp/assets");
+    expect(env.MANIC_PROGRESS).toBe("json");
+  });
+
+  it("puts portable project assets first without discarding extra asset roots", () => {
+    const env = buildWorkspaceManicEnv("/tmp/my-project", {
+      engineEnv: { MANIC_EXTRA_ASSETS_DIR: ["/shared/team", "/shared/brand"].join(delimiter) },
+    }, { MANIC_PROGRESS: "json" });
+    expect(env.MANIC_EXTRA_ASSETS_DIR?.split(delimiter)).toEqual([
+      join("/tmp/my-project", ".manic", "assets"), "/shared/team", "/shared/brand",
+    ]);
     expect(env.MANIC_PROGRESS).toBe("json");
   });
 
