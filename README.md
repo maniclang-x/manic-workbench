@@ -60,8 +60,9 @@ Workbench opens a loopback-only local URL (with a session token). Use
   fails, and launch the native Manic preview only for a valid active file
 - **Render** — MP4, animated GIF, or PNG frames with live progress, history,
   and playback under the project’s `.manic-output` folder
-- **Assets** — search the bundled Library, import PNG/JPEG/SVG files into the
-  current project, and place `image()` or `svg()` entities without writing code
+- **Assets** — search bundled images, SVG, and paired Smart Draw packages;
+  import PNG/JPEG/SVG files into the current project, and place `image()`,
+  `svg()`, or engine-packaged `smartdraw()` entities without writing code
 - **Settings** — Manic executable path, `MANIC_*` environment variables
   (for example `MANIC_ASSETS_DIR` for archive installs), install Manic when
   missing (official installer or Homebrew), release channel, preview defaults,

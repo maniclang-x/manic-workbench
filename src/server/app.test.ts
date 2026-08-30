@@ -1,10 +1,11 @@
-import { mkdtemp, realpath, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, realpath, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { createApp } from "./app.js";
+import { createApp, parseAssetKind } from "./app.js";
 import { createAiSecretStore } from "./aiSecrets.js";
 import type { AgentThread, Candidate, EngineChecker, ModelProvider, ModelRequest, ModelResult } from "./manicAgent.js";
+import type { SmartDrawEngineRunner } from "./smartDraw.js";
 import { defaultSettings, validateSettings, type SettingsStore, type WorkbenchSettings } from "./settings.js";
 
 const token = "test-session-token";
@@ -40,6 +41,92 @@ describe("Workbench local API boundary", () => {
     const policy = response.headers.get("Content-Security-Policy");
     expect(policy).toContain("media-src 'self' blob:");
     expect(policy).toContain("img-src 'self' data: blob:");
+  });
+
+  it("preserves the Scene Smart Draw asset filter at the API boundary", () => {
+    expect(parseAssetKind("smartdraw")).toBe("smartdraw");
+    expect(parseAssetKind("unknown")).toBe("all");
+  });
+
+  it("keeps custom Smart Draw import and choreography behind the engine-owned JSON contract", async () => {
+    const workspace = await realpath(await mkdtemp(join(tmpdir(), "manic-smartdraw-api-")));
+    const runner: SmartDrawEngineRunner = vi.fn(async (_workspace, arguments_) => {
+      const operation = arguments_[1];
+      if (operation === "init") {
+        await writeFile(arguments_[2].replace(/\.svg$/u, ".draw"), "manic-smartdraw\nmode stroke\norder 0 1\n");
+        return { schemaVersion: 1, operation: "init" };
+      }
+      if (operation === "suggest") return {
+        schemaVersion: 1, operation: "suggest", path: arguments_[2], wrote: arguments_.includes("--write"),
+        order: [1, 0], reverse: [1], groupCount: 1, groupingGap: 3, sourceTravel: 12, suggestedTravel: 4,
+        steps: [
+          { position: 0, pathIndex: 1, group: 0, reversed: true, penUpDistance: 0 },
+          { position: 1, pathIndex: 0, group: 0, reversed: false, penUpDistance: 4 },
+        ],
+      };
+      const appliedOrder = operation === "apply" ? arguments_[arguments_.indexOf("--order") + 1].split(",").map(Number) : [0, 1];
+      const reverseOption = arguments_.indexOf("--reverse");
+      const appliedReverse = operation === "apply" && reverseOption >= 0
+        ? arguments_[reverseOption + 1].split(",").map(Number)
+        : operation === "reverse" && arguments_.includes("reverse") ? [Number(arguments_[3])] : [];
+      return {
+        schemaVersion: 1, operation: "inspect", path: arguments_[2], mode: "stroke", ready: true,
+        geometry: { pathCount: 2, totalPoints: 4, bounds: { min: [0, 0], max: [10, 10] }, minWidth: 1, maxWidth: 1, colorPolicy: "literal" },
+        manifest: { valid: true, order: appliedOrder, reverse: appliedReverse, guide: null },
+        paths: [
+          { index: 0, position: appliedOrder.indexOf(0), points: 2, previewPoints: [[0, 0], [5, 5]], bounds: { min: [0, 0], max: [5, 5] }, closed: false, start: [0, 0], end: [5, 5], length: 7, width: 1, color: "#111", reversed: appliedReverse.includes(0) },
+          { index: 1, position: appliedOrder.indexOf(1), points: 2, previewPoints: [[5, 5], [10, 10]], bounds: { min: [5, 5], max: [10, 10] }, closed: false, start: [5, 5], end: [10, 10], length: 7, width: 1, color: "#111", reversed: appliedReverse.includes(1) },
+        ], warnings: [], errors: [],
+      };
+    });
+    const app = testApp("/missing/client", undefined, workspace, undefined, undefined, runner);
+    const form = new FormData();
+    form.set("source", new File(['<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M0 0L5 5"/><path d="M5 5L10 10"/></svg>'], "custom.svg"));
+    form.set("title", "Custom Process"); form.set("author", "Workbench Tester");
+    form.set("licenseId", "CC-BY-4.0"); form.set("licenseName", "CC BY 4.0"); form.set("attributionRequired", "true");
+    const importedResponse = await app.request(`${origin}/api/assets/smartdraw/import`, {
+      method: "POST", headers: { Origin: origin, "X-Manic-Session": token }, body: form,
+    });
+    expect(importedResponse.status).toBe(201);
+    const imported = await importedResponse.json() as { asset: { uri: string }; inspection: { ready: boolean } };
+    expect(imported).toMatchObject({
+      asset: { uri: expect.stringMatching(/^asset:project\//u), title: "Custom Process", provenance: { author: "Workbench Tester" }, license: { id: "CC-BY-4.0" } },
+      inspection: { ready: true }, duplicate: false,
+    });
+
+    const headers = { Origin: origin, "X-Manic-Session": token, "Content-Type": "application/json" };
+    const suggested = await app.request(`${origin}/api/assets/smartdraw/suggest`, {
+      method: "POST", headers, body: JSON.stringify({ uri: imported.asset.uri, write: true }),
+    });
+    expect(suggested.status).toBe(200);
+    await expect(suggested.json()).resolves.toMatchObject({ suggestion: { order: [1, 0], wrote: true }, inspection: { ready: true } });
+    const reversed = await app.request(`${origin}/api/assets/smartdraw/reverse`, {
+      method: "POST", headers, body: JSON.stringify({ uri: imported.asset.uri, pathIndex: 1, reversed: true }),
+    });
+    await expect(reversed.json()).resolves.toMatchObject({ manifest: { reverse: [1] } });
+    const saved = await app.request(`${origin}/api/assets/smartdraw/save`, {
+      method: "POST", headers, body: JSON.stringify({ uri: imported.asset.uri, order: [1, 0], reverse: [0] }),
+    });
+    await expect(saved.json()).resolves.toMatchObject({ manifest: { order: [1, 0], reverse: [0] } });
+
+    const renamed = await app.request(`${origin}/api/assets/smartdraw/rename`, {
+      method: "POST", headers, body: JSON.stringify({ uri: imported.asset.uri, title: "Renamed Process" }),
+    });
+    await expect(renamed.json()).resolves.toMatchObject({ asset: { uri: imported.asset.uri, title: "Renamed Process" } });
+    const exported = await app.request(`${origin}/api/assets/smartdraw/export?uri=${encodeURIComponent(imported.asset.uri)}`, { headers });
+    expect(exported.status).toBe(200);
+    expect(exported.headers.get("Content-Type")).toBe("application/zip");
+    expect(new Uint8Array(await exported.arrayBuffer()).subarray(0, 4)).toEqual(new Uint8Array([0x50, 0x4b, 0x03, 0x04]));
+    const deleted = await app.request(`${origin}/api/assets/smartdraw`, {
+      method: "DELETE", headers, body: JSON.stringify({ uri: imported.asset.uri }),
+    });
+    await expect(deleted.json()).resolves.toMatchObject({ asset: { title: "Renamed Process" }, recoverable: true });
+
+    const calls = vi.mocked(runner).mock.calls.map((call) => call[1]);
+    expect(calls[0]?.slice(0, 3)).toEqual(["smartdraw", "init", expect.stringMatching(/custom\.svg$/u)]);
+    expect(calls).toContainEqual(["smartdraw", "suggest", expect.stringMatching(/custom\.svg$/u), "--json", "--write", "--force"]);
+    expect(calls).toContainEqual(["smartdraw", "reverse", expect.stringMatching(/custom\.svg$/u), "1", "--set", "reverse", "--json"]);
+    expect(calls).toContainEqual(["smartdraw", "apply", expect.stringMatching(/custom\.svg$/u), "--order", "1,0", "--reverse", "0", "--json"]);
   });
 
   it("validates settings before persisting them", async () => {
@@ -141,6 +228,65 @@ describe("Workbench local API boundary", () => {
     expect(engineCheck).toHaveBeenCalledOnce();
     expect(engineCheck.mock.calls[0]?.[0]).toBe(workspace);
     expect(engineCheck.mock.calls[0]?.[1]).toBe(join(workspace, "broken.manic"));
+  });
+
+  it("launches the host native preview only after Manic accepts the saved file", async () => {
+    const workspace = await realpath(await mkdtemp(join(tmpdir(), "manic-preview-valid-")));
+    await writeFile(join(workspace, "whiteboard.manic"), "template(whiteboard);\n");
+    const engineCheck = vi.fn<EngineChecker>(async () => ({ ok: true, exitCode: 0, output: "ok" }));
+    const launchPreview = vi.fn(async () => undefined);
+    const app = testApp("/missing/client", undefined, workspace, engineCheck, launchPreview);
+
+    const response = await app.request(`${origin}/api/preview`, {
+      method: "POST",
+      headers: { Origin: origin, "X-Manic-Session": token, "Content-Type": "application/json" },
+      body: JSON.stringify({ path: "whiteboard.manic" }),
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ started: true, path: "whiteboard.manic", check: { ok: true } });
+    expect(engineCheck).toHaveBeenCalledOnce();
+    expect(launchPreview).toHaveBeenCalledWith(workspace, join(workspace, "whiteboard.manic"), expect.objectContaining({ preview: expect.any(Object) }));
+  });
+
+  it("preserves a bundled Smart Draw URI through save, reopen, check, and native preview", async () => {
+    const workspace = await realpath(await mkdtemp(join(tmpdir(), "manic-smartdraw-roundtrip-")));
+    const path = "roundtrip.manic";
+    const initial = 'title("Smart Draw round trip");\ncanvas("16:9");\ntemplate("whiteboard");\n';
+    const saved = `${initial}smartdraw(drawing, (640, 360), "asset:smartdraw/database.svg", 260);\n`;
+    await writeFile(join(workspace, path), initial);
+    const checkedSources: string[] = [];
+    const previewedSources: string[] = [];
+    const engineCheck = vi.fn<EngineChecker>(async (_workspace, file) => {
+      checkedSources.push(await readFile(file, "utf8"));
+      return { ok: true, exitCode: 0, output: "ok" };
+    });
+    const launchPreview = vi.fn(async (_workspace: string, file: string) => {
+      previewedSources.push(await readFile(file, "utf8"));
+    });
+    const app = testApp("/missing/client", undefined, workspace, engineCheck, launchPreview);
+    const headers = { Origin: origin, "X-Manic-Session": token, "Content-Type": "application/json" };
+
+    const opened = await (await app.request(`${origin}/api/file?path=${path}`, { headers })).json() as { file: { version: string } };
+    const saveResponse = await app.request(`${origin}/api/file`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({ path, content: saved, expectedVersion: opened.file.version }),
+    });
+    expect(saveResponse.status).toBe(200);
+
+    const reopened = await app.request(`${origin}/api/file?path=${path}`, { headers });
+    await expect(reopened.json()).resolves.toMatchObject({ file: { path, content: saved } });
+    const preview = await app.request(`${origin}/api/preview`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ path }),
+    });
+
+    await expect(preview.json()).resolves.toMatchObject({ started: true, path, check: { ok: true } });
+    expect(checkedSources).toEqual([saved]);
+    expect(previewedSources).toEqual([saved]);
+    expect(saved).not.toContain(workspace);
   });
 
 });
@@ -379,7 +525,7 @@ function aiTestApp(workspace: string, script: ModelResult[], options: { baseUrl?
   return { app, provider, resolved };
 }
 
-function testApp(clientRoot = "/missing/client", pickWorkspace?: (currentWorkspace: string) => Promise<string | null>, workspace = "/safe/project", engineCheck?: EngineChecker) {
+function testApp(clientRoot = "/missing/client", pickWorkspace?: (currentWorkspace: string) => Promise<string | null>, workspace = "/safe/project", engineCheck?: EngineChecker, launchPreview?: (workspace: string, file: string, settings: WorkbenchSettings) => Promise<void>, smartDrawRunner?: SmartDrawEngineRunner) {
   let settings = structuredClone(defaultSettings);
   const settingsStore: SettingsStore = {
     path: "/safe/settings.json",
@@ -397,6 +543,8 @@ function testApp(clientRoot = "/missing/client", pickWorkspace?: (currentWorkspa
     settingsStore,
     pickWorkspace,
     engineCheck,
+    launchPreview,
+    smartDrawRunner,
     async diagnostics(_settings: WorkbenchSettings) {
       return {
         engine: { available: true, command: "manic", version: "manic 0.1.0", detail: null },

@@ -1,4 +1,7 @@
-import type { ManicAsset, ManicAssetPage, ManicAssetProvider, ManicAssetSearch, ResolvedManicAsset } from "@maniclang/scene";
+import type {
+  ManicAsset, ManicAssetPage, ManicAssetProvider, ManicAssetSearch, ManicSmartDrawInspection,
+  ManicSmartDrawImportMetadata, ManicSmartDrawSuggestion, ResolvedManicAsset,
+} from "@maniclang/scene";
 import { apiRequest } from "./api";
 
 /** Bind the host-neutral scene asset contract to Workbench's authenticated API. */
@@ -43,6 +46,97 @@ export function createWorkbenchAssetProvider(token: string): ManicAssetProvider 
       if (!response.ok || !body.asset) throw new Error(body.error ?? `Asset upload failed (${response.status}).`);
       metadata.set(body.asset.uri, body.asset);
       return body.asset;
+    },
+
+    smartDraw: {
+      async import(source: File, guide?: File, importMetadata: ManicSmartDrawImportMetadata = {}) {
+        const form = new FormData();
+        form.set("source", source);
+        if (guide) form.set("guide", guide);
+        if (importMetadata.title) form.set("title", importMetadata.title);
+        if (importMetadata.author) form.set("author", importMetadata.author);
+        if (importMetadata.sourceUrl) form.set("sourceUrl", importMetadata.sourceUrl);
+        if (importMetadata.license) {
+          form.set("licenseId", importMetadata.license.id);
+          form.set("licenseName", importMetadata.license.name);
+          form.set("attributionRequired", String(importMetadata.license.attributionRequired));
+          if (importMetadata.license.attribution) form.set("attribution", importMetadata.license.attribution);
+          if (importMetadata.license.url) form.set("licenseUrl", importMetadata.license.url);
+        }
+        const response = await fetch("/api/assets/smartdraw/import", {
+          method: "POST",
+          headers: { "X-Manic-Session": token },
+          body: form,
+        });
+        const body = await response.json() as { asset?: ManicAsset; inspection?: ManicSmartDrawInspection; duplicate?: boolean; error?: string };
+        if (!response.ok || !body.asset || !body.inspection) throw new Error(body.error ?? `Smart Draw import failed (${response.status}).`);
+        metadata.set(body.asset.uri, body.asset);
+        return { asset: body.asset, inspection: body.inspection, duplicate: body.duplicate };
+      },
+
+      inspect(uri: string) {
+        return apiRequest<ManicSmartDrawInspection>(token, `/api/assets/smartdraw/inspect?uri=${encodeURIComponent(uri)}`);
+      },
+
+      suggest(uri: string, write: boolean) {
+        return apiRequest<{ suggestion: ManicSmartDrawSuggestion; inspection?: ManicSmartDrawInspection }>(
+          token,
+          "/api/assets/smartdraw/suggest",
+          { method: "POST", body: JSON.stringify({ uri, write }) },
+        );
+      },
+
+      setPathDirection(uri: string, pathIndex: number, reversed: boolean) {
+        return apiRequest<ManicSmartDrawInspection>(token, "/api/assets/smartdraw/reverse", {
+          method: "POST",
+          body: JSON.stringify({ uri, pathIndex, reversed }),
+        });
+      },
+
+      saveChoreography(uri: string, order: number[], reverse: number[]) {
+        return apiRequest<ManicSmartDrawInspection>(token, "/api/assets/smartdraw/save", {
+          method: "POST",
+          body: JSON.stringify({ uri, order, reverse }),
+        });
+      },
+
+      async rename(uri: string, title: string) {
+        const response = await apiRequest<{ asset: ManicAsset }>(token, "/api/assets/smartdraw/rename", {
+          method: "POST",
+          body: JSON.stringify({ uri, title }),
+        });
+        metadata.set(response.asset.uri, response.asset);
+        resolved.delete(uri);
+        return response.asset;
+      },
+
+      async delete(uri: string) {
+        await apiRequest(token, "/api/assets/smartdraw", {
+          method: "DELETE",
+          body: JSON.stringify({ uri }),
+        });
+        metadata.delete(uri);
+        resolved.delete(uri);
+      },
+
+      async exportPackage(uri: string) {
+        const response = await fetch(`/api/assets/smartdraw/export?uri=${encodeURIComponent(uri)}`, {
+          headers: { "X-Manic-Session": token },
+        });
+        if (!response.ok) {
+          const body = await response.json().catch(() => null) as { error?: string } | null;
+          throw new Error(body?.error ?? `Smart Draw export failed (${response.status}).`);
+        }
+        const disposition = response.headers.get("Content-Disposition") ?? "";
+        const filename = /filename="([^"]+)"/u.exec(disposition)?.[1] ?? "smartdraw.manic-smartdraw.zip";
+        const url = URL.createObjectURL(await response.blob());
+        try {
+          const link = document.createElement("a");
+          link.href = url; link.download = filename; link.click();
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      },
     },
   };
 }

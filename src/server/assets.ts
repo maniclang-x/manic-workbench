@@ -1,15 +1,18 @@
 import { createHash, randomUUID } from "node:crypto";
-import { lstat, mkdir, readFile, realpath, rename, stat, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, realpath, rename, rm, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
-import type { ManicAsset, ManicAssetKind, ManicAssetPage, ManicAssetScope } from "@maniclang/scene";
+import type {
+  ManicAsset, ManicAssetKind, ManicAssetPage, ManicAssetScope, ManicSmartDrawImportMetadata,
+} from "@maniclang/scene";
 import type { WorkbenchSettings } from "./settings.js";
 import { suggestAssetsDirFromEnginePath } from "./manicEnv.js";
 
 const MAX_ASSET_BYTES = 16 * 1024 * 1024;
 const PROJECT_MANIFEST = ".manic/assets.json";
 const PROJECT_ASSET_ROOT = ".manic/assets";
+const projectMutationTails = new Map<string, Promise<void>>();
 
-interface ProjectAssetRecord extends ManicAsset { createdAt: number; }
+interface ProjectAssetRecord extends ManicAsset { createdAt: number; packageSha256?: string; }
 interface ProjectManifest { schemaVersion: 1; assets: ProjectAssetRecord[]; }
 interface LibraryEntry extends Omit<ManicAsset, "scope"> { uiVisible: boolean; }
 interface LibraryManifest { schemaVersion: number; assets: LibraryEntry[]; }
@@ -88,6 +91,182 @@ export async function importProjectAsset(workspace: string, file: File): Promise
   return publicAsset(asset);
 }
 
+/**
+ * Install a relocatable Smart Draw package and let the engine create its
+ * adjacent manifest before the package becomes visible in the project
+ * catalogue. Any engine or catalogue failure rolls back the new directory.
+ */
+export async function importProjectSmartDraw(
+  workspace: string,
+  sourceFile: File,
+  guideFile: File | null,
+  prepare: (sourcePath: string, guidePath: string | null) => Promise<void>,
+  metadata: ManicSmartDrawImportMetadata = {},
+): Promise<ManicAsset> {
+  return withProjectAssetMutation(workspace, () => importProjectSmartDrawUnlocked(workspace, sourceFile, guideFile, prepare, metadata));
+}
+
+async function importProjectSmartDrawUnlocked(
+  workspace: string,
+  sourceFile: File,
+  guideFile: File | null,
+  prepare: (sourcePath: string, guidePath: string | null) => Promise<void>,
+  metadata: ManicSmartDrawImportMetadata,
+): Promise<ManicAsset> {
+  const source = await inspectUploadedFile(sourceFile);
+  if (source.inspected.mediaType !== "image/svg+xml" && !(guideFile && source.inspected.mediaType === "image/png")) {
+    throw new Error("Stroke Smart Draw needs an SVG. Filled SVG or PNG artwork also needs an SVG reveal guide.");
+  }
+  const guide = guideFile ? await inspectUploadedFile(guideFile) : null;
+  if (guide && guide.inspected.mediaType !== "image/svg+xml") throw new Error("The Smart Draw reveal guide must be an SVG file.");
+
+  const manifest = await readProjectManifest(workspace);
+  const packageSha256 = smartDrawPackageSha256(source.bytes, guide?.bytes ?? null);
+  const duplicate = manifest.assets.find((asset) => asset.kind === "smartdraw" && asset.packageSha256 === packageSha256);
+  if (duplicate) return publicAsset(duplicate);
+
+  const title = validateAssetTitle(metadata.title?.trim() || titleFromName(sourceFile.name));
+  const collision = manifest.assets.find((asset) => asset.kind === "smartdraw" && asset.title.toLowerCase() === title.toLowerCase());
+  if (collision) throw new Error(`A different Smart Draw package is already named “${title}”. Choose another title.`);
+  const license = validateLicense(metadata.license);
+  const provenance = validateProvenance(metadata, sourceFile.name);
+  const id = randomUUID();
+  const sourceName = safeFilename(sourceFile.name, source.inspected.extension);
+  const guideName = guide ? uniqueGuideFilename(guideFile!.name, sourceName) : null;
+  const relativePath = `project/${id}/${sourceName}`;
+  const root = await ensureProjectAssetRoot(workspace);
+  const directory = join(root, "project", id);
+  await mkdir(directory, { mode: 0o700 });
+  try {
+    const sourcePath = join(directory, sourceName);
+    const guidePath = guideName ? join(directory, guideName) : null;
+    await writeFile(sourcePath, source.bytes, { flag: "wx", mode: 0o600 });
+    if (guide && guidePath) await writeFile(guidePath, guide.bytes, { flag: "wx", mode: 0o600 });
+    await prepare(sourcePath, guidePath);
+    const manifestPath = sourcePath.slice(0, -extname(sourcePath).length) + ".draw";
+    const manifestInformation = await lstat(manifestPath).catch(() => null);
+    if (!manifestInformation?.isFile() || manifestInformation.isSymbolicLink()) {
+      throw new Error("The Manic Engine did not create a safe adjacent .draw manifest.");
+    }
+    const manifestBytes = await readFile(manifestPath);
+
+    const asset: ProjectAssetRecord = {
+      uri: `asset:${relativePath}`,
+      kind: "smartdraw",
+      scope: "project",
+      mediaType: source.inspected.mediaType,
+      title,
+      category: ["project", "smartdraw"],
+      keywords: [...new Set([...tokens(sourceName), "smart", "draw"])],
+      byteSize: source.bytes.length + (guide?.bytes.length ?? 0) + manifestBytes.length,
+      sha256: source.sha256,
+      ...(source.inspected.width && source.inspected.height ? {
+        width: source.inspected.width,
+        height: source.inspected.height,
+        aspectRatio: Number((source.inspected.width / source.inspected.height).toFixed(6)),
+      } : {}),
+      themeable: source.inspected.themeable,
+      license,
+      ...(Object.keys(provenance).length ? { provenance } : {}),
+      warnings: source.inspected.warnings,
+      createdAt: Date.now(),
+      packageSha256,
+    };
+    manifest.assets.push(asset);
+    await writeProjectManifest(workspace, manifest);
+    return publicAsset(asset);
+  } catch (error) {
+    await rm(directory, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+/** Rename catalogue metadata without changing the immutable portable URI. */
+export async function renameProjectSmartDraw(workspace: string, uri: string, titleValue: string): Promise<ManicAsset> {
+  return withProjectAssetMutation(workspace, () => renameProjectSmartDrawUnlocked(workspace, uri, titleValue));
+}
+
+async function renameProjectSmartDrawUnlocked(workspace: string, uri: string, titleValue: string): Promise<ManicAsset> {
+  const title = validateAssetTitle(titleValue);
+  const manifest = await readProjectManifest(workspace);
+  const asset = requireProjectSmartDrawRecord(manifest, uri);
+  const collision = manifest.assets.find((candidate) => candidate.uri !== uri && candidate.kind === "smartdraw"
+    && candidate.title.toLowerCase() === title.toLowerCase());
+  if (collision) throw new Error(`A different Smart Draw package is already named “${title}”. Choose another title.`);
+  asset.title = title;
+  asset.keywords = [...new Set([...tokens(title), "smart", "draw"])];
+  await writeProjectManifest(workspace, manifest);
+  return publicAsset(asset);
+}
+
+/** Move the complete package to recoverable project trash, then unpublish it. */
+export async function trashProjectSmartDraw(workspace: string, uri: string): Promise<ManicAsset> {
+  return withProjectAssetMutation(workspace, () => trashProjectSmartDrawUnlocked(workspace, uri));
+}
+
+async function trashProjectSmartDrawUnlocked(workspace: string, uri: string): Promise<ManicAsset> {
+  const manifest = await readProjectManifest(workspace);
+  const asset = requireProjectSmartDrawRecord(manifest, uri);
+  const root = await ensureProjectAssetRoot(workspace);
+  const sourcePath = await safeExistingAsset(root, uri.slice("asset:".length));
+  const directory = dirname(sourcePath);
+  const packageId = basename(directory);
+  const trashRoot = join(dirname(root), "trash", "assets");
+  await mkdir(trashRoot, { recursive: true, mode: 0o700 });
+  const trashDirectory = join(trashRoot, `${Date.now()}-${packageId}`);
+  await rename(directory, trashDirectory);
+  try {
+    manifest.assets = manifest.assets.filter((candidate) => candidate.uri !== uri);
+    await writeProjectManifest(workspace, manifest);
+  } catch (error) {
+    await rename(trashDirectory, directory);
+    throw error;
+  }
+  return publicAsset(asset);
+}
+
+export interface SmartDrawPackageExport {
+  filename: string;
+  mediaType: "application/zip";
+  bytes: Buffer;
+}
+
+/** Export only the registered source, adjacent manifest, and referenced guide. */
+export async function exportProjectSmartDraw(workspace: string, uri: string): Promise<SmartDrawPackageExport> {
+  const manifest = await readProjectManifest(workspace);
+  const asset = requireProjectSmartDrawRecord(manifest, uri);
+  const root = await ensureProjectAssetRoot(workspace);
+  const sourcePath = await safeExistingAsset(root, uri.slice("asset:".length));
+  const directory = dirname(sourcePath);
+  const drawName = `${basename(sourcePath, extname(sourcePath))}.draw`;
+  const drawPath = join(directory, drawName);
+  const draw = await safePackageFile(directory, drawPath);
+  const guideRef = /^\s*guide\s+(.+?)\s*$/mu.exec(draw.toString("utf8"))?.[1]?.trim() ?? null;
+  const files: Array<{ name: string; data: Buffer }> = [
+    { name: basename(sourcePath), data: await readFile(sourcePath) },
+    { name: drawName, data: draw },
+  ];
+  if (guideRef) {
+    if (guideRef.includes("\0") || guideRef.startsWith("/") || guideRef.split(/[\\/]/u).some((part) => !part || part === "." || part === "..")) {
+      throw new Error("The Smart Draw manifest references an unsafe reveal guide.");
+    }
+    const guidePath = join(directory, ...guideRef.split("/"));
+    files.push({ name: guideRef, data: await safePackageFile(directory, guidePath) });
+  }
+  const metadata = Buffer.from(`${JSON.stringify({
+    schemaVersion: 1,
+    asset: publicAsset(asset),
+    packageSha256: asset.packageSha256 ?? null,
+    files: files.map((file) => file.name),
+  }, null, 2)}\n`, "utf8");
+  files.push({ name: "manic-smartdraw-package.json", data: metadata });
+  return {
+    filename: `${safeFilename(asset.title, "").replace(/-$/u, "") || "smartdraw"}.manic-smartdraw.zip`,
+    mediaType: "application/zip",
+    bytes: zipStored(files),
+  };
+}
+
 export function projectAssetsDirectory(workspace: string): string {
   return join(workspace, PROJECT_ASSET_ROOT);
 }
@@ -142,7 +321,24 @@ async function writeProjectManifest(workspace: string, manifest: ProjectManifest
   const target = join(dirname(root), "assets.json");
   const temporary = join(dirname(root), `.assets-${randomUUID()}.tmp`);
   await writeFile(temporary, `${JSON.stringify({ ...manifest, assets: [...manifest.assets].sort((a, b) => a.uri.localeCompare(b.uri)) }, null, 2)}\n`, { flag: "wx", mode: 0o600 });
-  await rename(temporary, target);
+  try { await rename(temporary, target); }
+  catch (error) { await rm(temporary, { force: true }); throw error; }
+}
+
+async function withProjectAssetMutation<T>(workspace: string, operation: () => Promise<T>): Promise<T> {
+  const key = await realpath(workspace);
+  const previous = projectMutationTails.get(key) ?? Promise.resolve();
+  let release = () => {};
+  const gate = new Promise<void>((resolveGate) => { release = resolveGate; });
+  const tail = previous.then(() => gate);
+  projectMutationTails.set(key, tail);
+  await previous;
+  try { return await operation(); }
+  finally {
+    release();
+    await tail;
+    if (projectMutationTails.get(key) === tail) projectMutationTails.delete(key);
+  }
 }
 
 async function ensureProjectAssetRoot(workspace: string): Promise<string> {
@@ -179,8 +375,89 @@ async function safeExistingAsset(root: string, localPath: string): Promise<strin
 }
 
 function publicAsset(asset: ManicAsset | ProjectAssetRecord): ManicAsset {
-  const { createdAt: _createdAt, ...result } = asset as ProjectAssetRecord;
+  const { createdAt: _createdAt, packageSha256: _packageSha256, ...result } = asset as ProjectAssetRecord;
   return result;
+}
+
+function requireProjectSmartDrawRecord(manifest: ProjectManifest, uri: string): ProjectAssetRecord {
+  validateAssetUri(uri);
+  if (!uri.startsWith("asset:project/")) throw new Error("Only project Smart Draw packages can be changed.");
+  const asset = manifest.assets.find((candidate) => candidate.uri === uri);
+  if (!asset || asset.kind !== "smartdraw") throw new Error(`Project Smart Draw package is not registered: ${uri}`);
+  return asset;
+}
+
+function validateAssetTitle(value: string): string {
+  const title = value.normalize("NFC").replaceAll(/\s+/gu, " ").trim();
+  if (!title) throw new Error("A Smart Draw package title is required.");
+  if (title.length > 120) throw new Error("Smart Draw package titles cannot exceed 120 characters.");
+  if (/\p{Cc}/u.test(title)) throw new Error("The Smart Draw package title contains unsupported control characters.");
+  return title;
+}
+
+function validateProvenance(metadata: ManicSmartDrawImportMetadata, importedFilename: string): NonNullable<ManicAsset["provenance"]> {
+  const author = optionalText(metadata.author, 120, "Author");
+  const sourceUrl = optionalWebUrl(metadata.sourceUrl, "Source URL");
+  return {
+    ...(author ? { author } : {}),
+    ...(sourceUrl ? { sourceUrl } : {}),
+    importedFilename: basename(importedFilename),
+  };
+}
+
+function validateLicense(value: ManicSmartDrawImportMetadata["license"]): ManicAsset["license"] {
+  if (!value) return null;
+  const id = optionalText(value.id, 80, "License ID");
+  const name = optionalText(value.name, 120, "License name");
+  const attribution = optionalText(value.attribution, 500, "Attribution");
+  const url = optionalWebUrl(value.url, "License URL");
+  if (!id && !name && !attribution && !url) return null;
+  if (!id || !name) throw new Error("License ID and license name are both required when license metadata is supplied.");
+  return {
+    id,
+    name,
+    attributionRequired: value.attributionRequired === true,
+    ...(attribution ? { attribution } : {}),
+    ...(url ? { url } : {}),
+  };
+}
+
+function optionalText(value: unknown, limit: number, label: string): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string") throw new Error(`${label} must be text.`);
+  const normalized = value.normalize("NFC").replaceAll(/\s+/gu, " ").trim();
+  if (!normalized) return null;
+  if (normalized.length > limit) throw new Error(`${label} cannot exceed ${limit} characters.`);
+  if (/\p{Cc}/u.test(normalized)) throw new Error(`${label} contains unsupported control characters.`);
+  return normalized;
+}
+
+function optionalWebUrl(value: unknown, label: string): string | null {
+  const text = optionalText(value, 500, label);
+  if (!text) return null;
+  let parsed: URL;
+  try { parsed = new URL(text); } catch { throw new Error(`${label} must be an absolute HTTP or HTTPS URL.`); }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") throw new Error(`${label} must use HTTP or HTTPS.`);
+  return parsed.toString();
+}
+
+function smartDrawPackageSha256(source: Buffer, guide: Buffer | null): string {
+  const hash = createHash("sha256");
+  hash.update("manic-smartdraw-package-v1\0source\0", "utf8");
+  hash.update(source);
+  hash.update("\0guide\0", "utf8");
+  if (guide) hash.update(guide);
+  return hash.digest("hex");
+}
+
+async function safePackageFile(directory: string, candidate: string): Promise<Buffer> {
+  const canonicalDirectory = await realpath(directory);
+  const information = await lstat(candidate).catch(() => null);
+  if (!information?.isFile() || information.isSymbolicLink()) throw new Error(`Smart Draw package file is missing: ${basename(candidate)}`);
+  const absolute = await realpath(candidate);
+  const local = relative(canonicalDirectory, absolute);
+  if (!local || local === ".." || local.startsWith(`..${sep}`)) throw new Error("Smart Draw package content escaped its package directory.");
+  return readFile(absolute);
 }
 
 function searchable(asset: ManicAsset): string {
@@ -243,6 +520,23 @@ function inspectAsset(name: string, data: Buffer): { kind: ManicAssetKind; media
   throw new Error("Workbench accepts PNG, JPEG, SVG, and geometry-only OBJ project assets.");
 }
 
+async function inspectUploadedFile(file: File) {
+  if (!file.name || file.name.includes("\0")) throw new Error("The uploaded asset needs a filename.");
+  if (file.size < 1) throw new Error("The uploaded asset is empty.");
+  if (file.size > MAX_ASSET_BYTES) throw new Error("Project assets cannot exceed 16 MB.");
+  const bytes = Buffer.from(await file.arrayBuffer());
+  return {
+    bytes,
+    inspected: inspectAsset(file.name, bytes),
+    sha256: createHash("sha256").update(bytes).digest("hex"),
+  };
+}
+
+function uniqueGuideFilename(original: string, sourceName: string): string {
+  const candidate = safeFilename(original, ".svg");
+  return candidate === sourceName ? "reveal-guide.svg" : candidate;
+}
+
 function validateSvg(source: string): void {
   const withoutComments = source.replaceAll(/<!--[^]*?-->/gu, "");
   if (/<!DOCTYPE|<!ENTITY|<script\b|<foreignObject\b/iu.test(withoutComments)) throw new Error("SVG scripts, document types, entities, and foreignObject are not allowed.");
@@ -294,4 +588,58 @@ function titleFromName(name: string): string {
 
 function tokens(name: string): string[] {
   return [...new Set(basename(name, extname(name)).toLowerCase().split(/[^a-z0-9]+/u).filter(Boolean))];
+}
+
+/** Minimal deterministic ZIP writer using stored entries; avoids a runtime archive dependency. */
+function zipStored(files: Array<{ name: string; data: Buffer }>): Buffer {
+  const localParts: Buffer[] = [], centralParts: Buffer[] = [];
+  let offset = 0;
+  for (const file of files) {
+    const name = Buffer.from(file.name.replaceAll("\\", "/"), "utf8");
+    if (!name.length || file.name.startsWith("/") || file.name.split(/[\\/]/u).some((part) => !part || part === "." || part === "..")) {
+      throw new Error("A Smart Draw export entry has an unsafe name.");
+    }
+    const crc = crc32(file.data);
+    const local = Buffer.alloc(30);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(20, 4);
+    local.writeUInt16LE(0x0800, 6);
+    local.writeUInt16LE(0x0021, 12); // 1980-01-01, the ZIP epoch.
+    local.writeUInt32LE(crc, 14);
+    local.writeUInt32LE(file.data.length, 18);
+    local.writeUInt32LE(file.data.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    localParts.push(local, name, file.data);
+
+    const central = Buffer.alloc(46);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(20, 4);
+    central.writeUInt16LE(20, 6);
+    central.writeUInt16LE(0x0800, 8);
+    central.writeUInt16LE(0x0021, 14);
+    central.writeUInt32LE(crc, 16);
+    central.writeUInt32LE(file.data.length, 20);
+    central.writeUInt32LE(file.data.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    central.writeUInt32LE(offset, 42);
+    centralParts.push(central, name);
+    offset += local.length + name.length + file.data.length;
+  }
+  const centralDirectory = Buffer.concat(centralParts);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(files.length, 8);
+  end.writeUInt16LE(files.length, 10);
+  end.writeUInt32LE(centralDirectory.length, 12);
+  end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...localParts, centralDirectory, end]);
+}
+
+function crc32(data: Buffer): number {
+  let crc = 0xffffffff;
+  for (const byte of data) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+  }
+  return (crc ^ 0xffffffff) >>> 0;
 }

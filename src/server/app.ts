@@ -4,6 +4,7 @@ import { stat } from "node:fs/promises";
 import { extname, relative, resolve } from "node:path";
 import { Readable } from "node:stream";
 import { Hono } from "hono";
+import type { ManicAssetKind, ManicSmartDrawImportMetadata, ManicSmartDrawInspection } from "@maniclang/scene";
 import type { Diagnostics } from "./diagnostics.js";
 import { normalizeAiBaseUrl, type SettingsStore, type WorkbenchSettings } from "./settings.js";
 import { RenderJobManager } from "./renderJobs.js";
@@ -17,7 +18,13 @@ import {
   appendTurn, buildConversation, createThread, getThread, listThreads, recordApply, removeThread, ThreadNotFoundError,
 } from "./agentThreads.js";
 import { createPromptStore, type PromptStore } from "./promptStore.js";
-import { importProjectAsset, resolveAsset, searchAssets } from "./assets.js";
+import {
+  exportProjectSmartDraw, importProjectAsset, importProjectSmartDraw, renameProjectSmartDraw, resolveAsset,
+  searchAssets, trashProjectSmartDraw,
+} from "./assets.js";
+import {
+  requireSmartDrawInspection, requireSmartDrawSuggestion, runSmartDrawEngine, type SmartDrawEngineRunner,
+} from "./smartDraw.js";
 import {
   createManicFile, duplicateManicFile, listManicFiles, readManicFile, renameManicFile,
   resolveExistingManicFile, resolveWorkspace, saveManicFile, trashManicFile, WorkspaceConflictError,
@@ -36,6 +43,10 @@ export interface WorkbenchContext {
   promptStore?: PromptStore;
   /** Test seam for preview, manual, and agent-run validation; defaults to the installed engine. */
   engineCheck?: EngineChecker;
+  /** Test seam for engine-owned Smart Draw inspection and manifest authoring. */
+  smartDrawRunner?: SmartDrawEngineRunner;
+  /** Host boundary for a checked native preview; defaults to RenderJobManager launching Manic. */
+  launchPreview?(workspace: string, file: string, settings: WorkbenchSettings): Promise<void>;
   /** Test seam for the local candidate autofix; defaults to engine `manic fix` with WASM fallback. */
   candidateAutofix?: CandidateFixer;
   openAiProvider?(apiKey: string, model: string, reasoning: WorkbenchSettings["ai"]["reasoning"]): ModelProvider;
@@ -52,6 +63,7 @@ export function createApp(context: WorkbenchContext): Hono {
   const promptStore = context.promptStore ?? createPromptStore();
   const candidateFixer = context.candidateAutofix ?? createCandidateFixer(context.clientRoot);
   const engineCheck = context.engineCheck ?? runEngineCheck;
+  const smartDrawRunner = context.smartDrawRunner ?? runSmartDrawEngine;
 
   app.use("*", async (c, next) => {
     await next();
@@ -326,8 +338,7 @@ export function createApp(context: WorkbenchContext): Hono {
   app.get("/api/assets", async (c) => {
     try {
       const scope = c.req.query("scope") === "project" ? "project" : "library";
-      const requestedKind = c.req.query("kind");
-      const kind = requestedKind === "image" || requestedKind === "svg" || requestedKind === "model" ? requestedKind : "all";
+      const kind = parseAssetKind(c.req.query("kind"));
       const settings = await context.settingsStore.load();
       return c.json(await searchAssets(workspace, settings, {
         scope,
@@ -379,6 +390,140 @@ export function createApp(context: WorkbenchContext): Hono {
       return c.json({ asset: await importProjectAsset(workspace, file) }, 201);
     } catch (error) {
       return c.json({ error: error instanceof Error ? error.message : "The asset could not be imported." }, 400);
+    }
+  });
+
+  app.post("/api/assets/smartdraw/import", async (c) => {
+    try {
+      const form = await c.req.formData();
+      const source = form.get("source"), guideValue = form.get("guide");
+      if (!(source instanceof File)) throw new Error("Choose SVG artwork, or PNG artwork with an SVG reveal guide.");
+      const guide = guideValue instanceof File && guideValue.size > 0 ? guideValue : null;
+      const metadata = smartDrawImportMetadata(form);
+      const settings = await context.settingsStore.load();
+      let inspection: ManicSmartDrawInspection | null = null;
+      let prepared = false;
+      const asset = await importProjectSmartDraw(workspace, source, guide, async (sourcePath, guidePath) => {
+        prepared = true;
+        const arguments_ = ["smartdraw", "init", sourcePath];
+        if (guidePath) arguments_.push("--guide", guidePath);
+        await smartDrawRunner(workspace, arguments_, settings, context.engineOverride);
+        inspection = requireSmartDrawInspection(await smartDrawRunner(
+          workspace, ["smartdraw", "inspect", sourcePath, "--json"], settings, context.engineOverride,
+        ));
+      }, metadata);
+      if (!inspection) {
+        const resolved = await resolveProjectSmartDraw(workspace, settings, asset.uri, context.engineOverride);
+        inspection = requireSmartDrawInspection(await smartDrawRunner(
+          workspace, ["smartdraw", "inspect", resolved.path, "--json"], settings, context.engineOverride,
+        ));
+      }
+      return c.json({ asset, inspection, duplicate: !prepared }, prepared ? 201 : 200);
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "The Smart Draw package could not be imported." }, 400);
+    }
+  });
+
+  app.get("/api/assets/smartdraw/inspect", async (c) => {
+    try {
+      const settings = await context.settingsStore.load();
+      const resolved = await resolveProjectSmartDraw(workspace, settings, c.req.query("uri") ?? "", context.engineOverride);
+      return c.json(requireSmartDrawInspection(await smartDrawRunner(
+        workspace, ["smartdraw", "inspect", resolved.path, "--json"], settings, context.engineOverride,
+      )));
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "The Smart Draw package could not be inspected." }, 400);
+    }
+  });
+
+  app.post("/api/assets/smartdraw/suggest", async (c) => {
+    try {
+      const body = await c.req.json<{ uri?: unknown; write?: unknown }>();
+      if (typeof body.uri !== "string" || typeof body.write !== "boolean") throw new Error("uri and write are required.");
+      const settings = await context.settingsStore.load();
+      const resolved = await resolveProjectSmartDraw(workspace, settings, body.uri, context.engineOverride);
+      const arguments_ = ["smartdraw", "suggest", resolved.path, "--json"];
+      if (body.write) arguments_.push("--write", "--force");
+      const suggestion = requireSmartDrawSuggestion(await smartDrawRunner(workspace, arguments_, settings, context.engineOverride));
+      if (!body.write) return c.json({ suggestion });
+      const inspection = requireSmartDrawInspection(await smartDrawRunner(
+        workspace, ["smartdraw", "inspect", resolved.path, "--json"], settings, context.engineOverride,
+      ));
+      return c.json({ suggestion, inspection });
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "Smart Draw ordering could not be suggested." }, 400);
+    }
+  });
+
+  app.post("/api/assets/smartdraw/reverse", async (c) => {
+    try {
+      const body = await c.req.json<{ uri?: unknown; pathIndex?: unknown; reversed?: unknown }>();
+      if (typeof body.uri !== "string" || !Number.isSafeInteger(body.pathIndex) || Number(body.pathIndex) < 0 || typeof body.reversed !== "boolean") {
+        throw new Error("uri, a non-negative pathIndex, and reversed are required.");
+      }
+      const settings = await context.settingsStore.load();
+      const resolved = await resolveProjectSmartDraw(workspace, settings, body.uri, context.engineOverride);
+      return c.json(requireSmartDrawInspection(await smartDrawRunner(workspace, [
+        "smartdraw", "reverse", resolved.path, String(body.pathIndex), "--set", body.reversed ? "reverse" : "source", "--json",
+      ], settings, context.engineOverride)));
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "Smart Draw path direction could not be changed." }, 400);
+    }
+  });
+
+  app.post("/api/assets/smartdraw/save", async (c) => {
+    try {
+      const body = await c.req.json<{ uri?: unknown; order?: unknown; reverse?: unknown }>();
+      if (typeof body.uri !== "string" || !isPathIndexList(body.order, false) || !isPathIndexList(body.reverse, true)) {
+        throw new Error("uri, a complete order, and a reverse path list are required.");
+      }
+      const settings = await context.settingsStore.load();
+      const resolved = await resolveProjectSmartDraw(workspace, settings, body.uri, context.engineOverride);
+      const arguments_ = ["smartdraw", "apply", resolved.path, "--order", body.order.join(",")];
+      if (body.reverse.length) arguments_.push("--reverse", body.reverse.join(","));
+      arguments_.push("--json");
+      return c.json(requireSmartDrawInspection(await smartDrawRunner(
+        workspace, arguments_, settings, context.engineOverride,
+      )));
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "Smart Draw choreography could not be saved." }, 400);
+    }
+  });
+
+  app.post("/api/assets/smartdraw/rename", async (c) => {
+    try {
+      const body = await c.req.json<{ uri?: unknown; title?: unknown }>();
+      if (typeof body.uri !== "string" || typeof body.title !== "string") throw new Error("uri and title are required.");
+      return c.json({ asset: await renameProjectSmartDraw(workspace, body.uri, body.title) });
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "The Smart Draw package could not be renamed." }, 400);
+    }
+  });
+
+  app.delete("/api/assets/smartdraw", async (c) => {
+    try {
+      const body = await c.req.json<{ uri?: unknown }>();
+      if (typeof body.uri !== "string") throw new Error("uri is required.");
+      return c.json({ asset: await trashProjectSmartDraw(workspace, body.uri), recoverable: true });
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "The Smart Draw package could not be moved to trash." }, 400);
+    }
+  });
+
+  app.get("/api/assets/smartdraw/export", async (c) => {
+    try {
+      const exported = await exportProjectSmartDraw(workspace, c.req.query("uri") ?? "");
+      return new Response(new Uint8Array(exported.bytes), {
+        headers: {
+          "Content-Type": exported.mediaType,
+          "Content-Length": String(exported.bytes.length),
+          "Content-Disposition": `attachment; filename="${exported.filename}"`,
+          "Cache-Control": "private, no-store",
+          "X-Content-Type-Options": "nosniff",
+        },
+      });
+    } catch (error) {
+      return c.json({ error: error instanceof Error ? error.message : "The Smart Draw package could not be exported." }, 400);
     }
   });
 
@@ -460,7 +605,8 @@ export function createApp(context: WorkbenchContext): Hono {
       const settings = await context.settingsStore.load();
       const check = await engineCheck(workspace, file.absolute, settings, context.engineOverride);
       if (!check.ok) return c.json({ started: false, path: file.path, check });
-      await renders.launchPreview(workspace, file.absolute, settings);
+      if (context.launchPreview) await context.launchPreview(workspace, file.absolute, settings);
+      else await renders.launchPreview(workspace, file.absolute, settings);
       return c.json({ started: true, path: file.path, check });
     } catch (error) {
       return c.json({ error: error instanceof Error ? error.message : "Preview could not be started." }, 400);
@@ -552,6 +698,47 @@ export function createApp(context: WorkbenchContext): Hono {
   });
 
   return app;
+}
+
+async function resolveProjectSmartDraw(workspace: string, settings: WorkbenchSettings, uri: string, engineOverride = "") {
+  const resolved = await resolveAsset(workspace, settings, uri, engineOverride);
+  if (resolved.asset.scope !== "project" || resolved.asset.kind !== "smartdraw") {
+    throw new Error("Choose a project Smart Draw package.");
+  }
+  return resolved;
+}
+
+function smartDrawImportMetadata(form: FormData): ManicSmartDrawImportMetadata {
+  const title = formText(form, "title"), author = formText(form, "author"), sourceUrl = formText(form, "sourceUrl");
+  const licenseId = formText(form, "licenseId"), licenseName = formText(form, "licenseName");
+  const licenseUrl = formText(form, "licenseUrl"), attribution = formText(form, "attribution");
+  const hasLicense = Boolean(licenseId || licenseName || licenseUrl || attribution || form.get("attributionRequired") === "true");
+  return {
+    ...(title ? { title } : {}),
+    ...(author ? { author } : {}),
+    ...(sourceUrl ? { sourceUrl } : {}),
+    ...(hasLicense ? { license: {
+      id: licenseId,
+      name: licenseName,
+      attributionRequired: form.get("attributionRequired") === "true",
+      ...(attribution ? { attribution } : {}),
+      ...(licenseUrl ? { url: licenseUrl } : {}),
+    } } : {}),
+  };
+}
+
+function formText(form: FormData, key: string): string {
+  const value = form.get(key);
+  return typeof value === "string" ? value.trim() : "";
+}
+
+export function parseAssetKind(value: string | undefined): ManicAssetKind | "all" {
+  return value === "image" || value === "svg" || value === "smartdraw" || value === "model" ? value : "all";
+}
+
+function isPathIndexList(value: unknown, allowEmpty: boolean): value is number[] {
+  return Array.isArray(value) && value.length <= 40_000 && (allowEmpty || value.length > 0)
+    && value.every((index) => Number.isSafeInteger(index) && index >= 0);
 }
 
 function applyRunOverride(settings: WorkbenchSettings, body: AgentRunInput): WorkbenchSettings {
